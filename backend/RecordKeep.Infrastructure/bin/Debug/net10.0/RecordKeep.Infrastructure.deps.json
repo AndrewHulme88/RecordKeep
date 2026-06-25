@@ -1,0 +1,56 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "RecordKeep.Infrastructure/1.0.0": {
+        "dependencies": {
+          "RecordKeep.Application": "1.0.0",
+          "RecordKeep.Domain": "1.0.0"
+        },
+        "runtime": {
+          "RecordKeep.Infrastructure.dll": {}
+        }
+      },
+      "RecordKeep.Application/1.0.0": {
+        "dependencies": {
+          "RecordKeep.Domain": "1.0.0"
+        },
+        "runtime": {
+          "RecordKeep.Application.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "RecordKeep.Domain/1.0.0": {
+        "runtime": {
+          "RecordKeep.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "RecordKeep.Infrastructure/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "RecordKeep.Application/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "RecordKeep.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

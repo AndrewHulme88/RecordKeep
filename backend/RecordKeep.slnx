@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="RecordKeep.Api/RecordKeep.Api.csproj" />
+  <Project Path="RecordKeep.Application/RecordKeep.Application.csproj" />
+  <Project Path="RecordKeep.Domain/RecordKeep.Domain.csproj" />
+  <Project Path="RecordKeep.Infrastructure/RecordKeep.Infrastructure.csproj" />
+</Solution>
