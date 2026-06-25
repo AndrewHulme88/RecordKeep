@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using RecordKeep.Infrastructure.Persistence;
+using RecordKeep.Api.Contracts.Records;
+using RecordKeep.Domain.Records;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,5 +29,35 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.MapPost("/api/records", async (
+    CreateRecordRequest request,
+    ApplicationDbContext dbContext) =>
+{
+    if (string.IsNullOrWhiteSpace(request.Title))
+    {
+        return Results.BadRequest(new { error = "Title is required." });
+    }
+
+    var record = new Record
+    {
+        Id = Guid.NewGuid(),
+        Title = request.Title.Trim(),
+        Provider = request.Provider?.Trim(),
+        Description = request.Description?.Trim(),
+        ReferenceNumber = request.ReferenceNumber?.Trim(),
+        StartDate = request.StartDate,
+        ExpiryDate = request.ExpiryDate,
+        Amount = request.Amount,
+        CreatedAtUtc = DateTime.UtcNow,
+        UpdatedAtUtc = DateTime.UtcNow
+    };
+
+    dbContext.Records.Add(record);
+    await dbContext.SaveChangesAsync();
+    
+    return Results.Created($"/api/records/{record.Id}", record);
+})
+.WithName("CreateRecord");
 
 app.Run();
