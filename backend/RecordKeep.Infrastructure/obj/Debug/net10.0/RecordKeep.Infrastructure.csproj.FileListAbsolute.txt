@@ -16,3 +16,5 @@
 /Users/andrew/Code/Projects/record-keep/backend/RecordKeep.Infrastructure/obj/Debug/net10.0/refint/RecordKeep.Infrastructure.dll
 /Users/andrew/Code/Projects/record-keep/backend/RecordKeep.Infrastructure/obj/Debug/net10.0/RecordKeep.Infrastructure.pdb
 /Users/andrew/Code/Projects/record-keep/backend/RecordKeep.Infrastructure/obj/Debug/net10.0/ref/RecordKeep.Infrastructure.dll
+/Users/andrew/Code/Projects/record-keep/backend/RecordKeep.Infrastructure/bin/Debug/net10.0/RecordKeep.Infrastructure.runtimeconfig.json
+/Users/andrew/Code/Projects/record-keep/backend/RecordKeep.Infrastructure/obj/Debug/net10.0/RecordKeep.Infrastructure.genruntimeconfig.cache
