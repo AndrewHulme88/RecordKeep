@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: recordkeep-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: recordkeep
+      POSTGRES_USER: recordkeep
+      POSTGRES_PASSWORD: development
+    ports:
+      - "5432:5432"
+    volumes:
+      - recordkeep-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  recordkeep-postgres-data:
