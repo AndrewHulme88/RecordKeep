@@ -87,4 +87,36 @@ app.MapGet("/api/records/{id:guid}", async (
 })
 .WithName("GetRecordById");
 
+app.MapPut("/api/records/{id:guid}", async (
+    Guid id,
+    UpdateRecordRequest request,
+    ApplicationDbContext dbContext) =>
+{
+    if (string.IsNullOrWhiteSpace(request.Title))
+    {
+        return Results.BadRequest(new { error = "Title is required" });
+    }
+
+    var record = await dbContext.Records.FirstOrDefaultAsync(record => record.Id == id);
+
+    if (record is null)
+    {
+        return Results.NotFound(new { error = "Record not found." });
+    }
+
+    record.Title = request.Title.Trim();
+    record.Provider = request.Provider?.Trim();
+    record.Description = request.Description?.Trim();
+    record.ReferenceNumber = request.ReferenceNumber?.Trim();
+    record.StartDate = request.StartDate;
+    record.ExpiryDate = request.ExpiryDate;
+    record.Amount = request.Amount;
+    record.UpdatedAtUtc = DateTime.UtcNow;
+
+    await dbContext.SaveChangesAsync();
+
+    return Results.Ok(record);
+})
+.WithName("UpdateRecord");
+
 app.Run();
