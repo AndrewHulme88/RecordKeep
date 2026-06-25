@@ -73,4 +73,18 @@ app.MapGet("/api/records", async (
 })
 .WithName("GetRecords");
 
+app.MapGet("/api/records/{id:guid}", async (
+    Guid id,
+    ApplicationDbContext dbContext) =>
+{
+    var record = await dbContext.Records
+        .AsNoTracking()
+        .FirstOrDefaultAsync(record => record.Id == id);
+    
+    return record is null
+        ? Results.NotFound(new { error = "Record not found." })
+        : Results.Ok(record);
+})
+.WithName("GetRecordById");
+
 app.Run();
