@@ -60,4 +60,17 @@ app.MapPost("/api/records", async (
 })
 .WithName("CreateRecord");
 
+app.MapGet("/api/records", async (
+    ApplicationDbContext dbContext) =>
+{
+    var records = await dbContext.Records
+        .AsNoTracking()
+        .OrderBy(record => record.ExpiryDate)
+        .ThenBy(record => record.Title)
+        .ToListAsync();
+    
+    return Results.Ok(records);
+})
+.WithName("GetRecords");
+
 app.Run();
