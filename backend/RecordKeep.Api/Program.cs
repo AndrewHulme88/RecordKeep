@@ -119,4 +119,22 @@ app.MapPut("/api/records/{id:guid}", async (
 })
 .WithName("UpdateRecord");
 
+app.MapDelete("/api/records/{id:guid}", async (
+    Guid id,
+    ApplicationDbContext dbContext) =>
+{
+    var record = await dbContext.Records.FirstOrDefaultAsync(record => record.Id == id);
+
+    if (record is null)
+    {
+        return Results.NotFound(new { error = "Record not found."});
+    }
+
+    dbContext.Records.Remove(record);
+    await dbContext.SaveChangesAsync();
+
+    return Results.NoContent();
+})
+.WithName("DeleteRecord");
+
 app.Run();
