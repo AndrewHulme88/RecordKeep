@@ -1,8 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using RecordKeep.Infrastructure.Persistence;
-using RecordKeep.Api.Contracts.Records;
-using RecordKeep.Domain.Records;
+using RecordKeep.Api.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,111 +29,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapPost("/api/records", async (
-    CreateRecordRequest request,
-    ApplicationDbContext dbContext) =>
-{
-    if (string.IsNullOrWhiteSpace(request.Title))
-    {
-        return Results.BadRequest(new { error = "Title is required." });
-    }
-
-    var record = new Record
-    {
-        Id = Guid.NewGuid(),
-        Title = request.Title.Trim(),
-        Provider = request.Provider?.Trim(),
-        Description = request.Description?.Trim(),
-        ReferenceNumber = request.ReferenceNumber?.Trim(),
-        StartDate = request.StartDate,
-        ExpiryDate = request.ExpiryDate,
-        Amount = request.Amount,
-        CreatedAtUtc = DateTime.UtcNow,
-        UpdatedAtUtc = DateTime.UtcNow
-    };
-
-    dbContext.Records.Add(record);
-    await dbContext.SaveChangesAsync();
-    
-    return Results.Created($"/api/records/{record.Id}", record);
-})
-.WithName("CreateRecord");
-
-app.MapGet("/api/records", async (
-    ApplicationDbContext dbContext) =>
-{
-    var records = await dbContext.Records
-        .AsNoTracking()
-        .OrderBy(record => record.ExpiryDate)
-        .ThenBy(record => record.Title)
-        .ToListAsync();
-    
-    return Results.Ok(records);
-})
-.WithName("GetRecords");
-
-app.MapGet("/api/records/{id:guid}", async (
-    Guid id,
-    ApplicationDbContext dbContext) =>
-{
-    var record = await dbContext.Records
-        .AsNoTracking()
-        .FirstOrDefaultAsync(record => record.Id == id);
-    
-    return record is null
-        ? Results.NotFound(new { error = "Record not found." })
-        : Results.Ok(record);
-})
-.WithName("GetRecordById");
-
-app.MapPut("/api/records/{id:guid}", async (
-    Guid id,
-    UpdateRecordRequest request,
-    ApplicationDbContext dbContext) =>
-{
-    if (string.IsNullOrWhiteSpace(request.Title))
-    {
-        return Results.BadRequest(new { error = "Title is required" });
-    }
-
-    var record = await dbContext.Records.FirstOrDefaultAsync(record => record.Id == id);
-
-    if (record is null)
-    {
-        return Results.NotFound(new { error = "Record not found." });
-    }
-
-    record.Title = request.Title.Trim();
-    record.Provider = request.Provider?.Trim();
-    record.Description = request.Description?.Trim();
-    record.ReferenceNumber = request.ReferenceNumber?.Trim();
-    record.StartDate = request.StartDate;
-    record.ExpiryDate = request.ExpiryDate;
-    record.Amount = request.Amount;
-    record.UpdatedAtUtc = DateTime.UtcNow;
-
-    await dbContext.SaveChangesAsync();
-
-    return Results.Ok(record);
-})
-.WithName("UpdateRecord");
-
-app.MapDelete("/api/records/{id:guid}", async (
-    Guid id,
-    ApplicationDbContext dbContext) =>
-{
-    var record = await dbContext.Records.FirstOrDefaultAsync(record => record.Id == id);
-
-    if (record is null)
-    {
-        return Results.NotFound(new { error = "Record not found."});
-    }
-
-    dbContext.Records.Remove(record);
-    await dbContext.SaveChangesAsync();
-
-    return Results.NoContent();
-})
-.WithName("DeleteRecord");
+app.MapRecordEndpoints();
 
 app.Run();
