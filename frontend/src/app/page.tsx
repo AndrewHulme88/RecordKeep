@@ -35,9 +35,10 @@ export default async function HomePage() {
         ) : (
           <div className="space-y-4">
             {records.map((record) => (
-              <article
+              <Link
                 key={record.id}
-                className="rounded-lg border p-5 shadow-sm"
+                href={`/records/${record.id}`}
+                className="block rounded-lg border p-5 shadow-sm transition hover:bg-gray-900"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -71,7 +72,7 @@ export default async function HomePage() {
                     {new Date(record.expiryDate).toLocaleDateString("en-AU")}
                   </p>
                 )}
-              </article>
+              </Link>
             ))}
           </div>
         )}
