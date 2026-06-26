@@ -1,4 +1,5 @@
 import { getRecords } from "@/lib/records";
+import Link from "next/link";
 
 export default async function HomePage() {
   const records = await getRecords();
@@ -16,12 +17,12 @@ export default async function HomePage() {
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold">Your records</h2>
 
-          <button
-            type="button"
+          <Link
+            href="/records/new"
             className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white"
           >
-            Add record
-          </button>
+            Add Record
+          </Link>
         </div>
 
         {records.length === 0 ? (
