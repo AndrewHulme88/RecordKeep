@@ -99,3 +99,21 @@ export async function updateRecord(
 
     return response.json();
 }
+
+export async function deleteRecord(id: string): Promise<void> {
+    if (!apiUrl) {
+        throw new Error("NEXT_PUBLIC_API_URL is not configured.");
+    }
+
+    const response = await fetch(`${apiUrl}/api/records/${id}`, {
+        method: "DELETE",
+    });
+
+    if (response.status === 404) {
+        throw new Error("Record not found.");
+    }
+
+    if (!response.ok) {
+        throw new Error(`Failed to delete record: ${response.status}`);
+    }
+}

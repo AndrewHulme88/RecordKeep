@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getRecordById } from "@/lib/records";
+import DeleteRecordButton from "./DeleteRecordButton";
 
 type RecordDetailsPageProps = {
   params: Promise<{
@@ -39,6 +40,8 @@ export default async function RecordDetailsPage({
         >
           Edit
         </Link>
+
+        <DeleteRecordButton recordId={record.id} />
       </div>
 
       <section className="mt-8 space-y-6 rounded-lg border p-6">
