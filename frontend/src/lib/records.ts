@@ -1,5 +1,6 @@
 import type { RecordItem } from "@/types/record";
 import { error } from "console";
+import { authenticatedFetch } from "./authenticated-fetch";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -36,13 +37,17 @@ export async function createRecord(
         throw new Error("NEXT_PUBLIC_API_URL is not configured.");
     }
 
-    const response = await fetch(`${apiUrl}/api/records`, {
+    const response = await authenticatedFetch(`${apiUrl}/api/records`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
         body: JSON.stringify(input),
     });
+
+    if (response.status === 401) {
+        throw new Error("You must be signed in.");
+    }
 
     if (!response.ok) {
         throw new Error(`Failed to create record: ${response.status}`);
@@ -56,12 +61,16 @@ export async function getRecordById(id: string): Promise<RecordItem | null> {
         throw new Error("NEXT_PUBLIC_API_URL is not configured.");
     }
 
-    const response = await fetch(`${apiUrl}/api/records/${id}`, {
+    const response = await authenticatedFetch(`${apiUrl}/api/records/${id}`, {
         cache: "no-store",
     });
 
     if (response.status === 404) {
         return null;
+    }
+
+    if (response.status === 401) {
+        throw new Error("You must be signed in.");
     }
 
     if (!response.ok) {
@@ -81,7 +90,7 @@ export async function updateRecord(
         throw new Error("NEXT_PUBLIC_API_URL is not configured.");
     }
 
-    const response = await fetch(`${apiUrl}/api/records/${id}`, {
+    const response = await authenticatedFetch(`${apiUrl}/api/records/${id}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
@@ -91,6 +100,10 @@ export async function updateRecord(
 
     if (response.status === 404) {
         throw new Error("Record not found.");
+    }
+
+    if (response.status === 401) {
+        throw new Error("You must be signed in.");
     }
 
     if (!response.ok) {
@@ -105,12 +118,16 @@ export async function deleteRecord(id: string): Promise<void> {
         throw new Error("NEXT_PUBLIC_API_URL is not configured.");
     }
 
-    const response = await fetch(`${apiUrl}/api/records/${id}`, {
+    const response = await authenticatedFetch(`${apiUrl}/api/records/${id}`, {
         method: "DELETE",
     });
 
     if (response.status === 404) {
         throw new Error("Record not found.");
+    }
+
+    if (response.status === 401) {
+        throw new Error("You must be signed in.");
     }
 
     if (!response.ok) {
