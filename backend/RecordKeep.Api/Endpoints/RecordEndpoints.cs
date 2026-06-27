@@ -11,7 +11,8 @@ public static class RecordEndpoints
         this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/records")
-            .WithTags("Records");
+            .WithTags("Records")
+            .RequireAuthorization();
 
         group.MapPost("/", CreateRecord);
         group.MapGet("/", GetRecords);

@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using RecordKeep.Infrastructure.Persistence;
 using RecordKeep.Api.Endpoints;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +30,53 @@ builder.Services.AddCors(options =>
     });
 });
 
+var cognitoRegion = 
+    builder.Configuration["Cognito:Region"]
+    ?? throw new InvalidOperationException("Cognito region is not configured.");
+
+var cognitoUserPoolId = 
+    builder.Configuration["Cognito:UserPoolId"]
+    ?? throw new InvalidOperationException("Cognito user pool ID is not configured.");
+
+var cognitoClientId =
+    builder.Configuration["Cognito:ClientId"]
+    ?? throw new InvalidOperationException("Cognito client ID is not configured.");
+
+var cognitoAuthority = $"https://cognito-idp.{cognitoRegion}.amazonaws.com/{cognitoUserPoolId}";
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.Authority = cognitoAuthority;
+
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = cognitoAuthority,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidateAudience = false,
+        NameClaimType = "username"
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = context =>
+        {
+            var tokenUse = context.Principal?.FindFirst("token_use")?.Value;
+            var clientId = context.Principal?.FindFirst("client_id")?.Value;
+
+            if (tokenUse != "access" || clientId != cognitoClientId)
+            {
+                context.Fail("Invalid Cognito access token.");
+            }
+
+            return Task.CompletedTask;
+        }
+    };
+});
+
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -40,8 +89,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("Frontend");
 
-app.UseHttpsRedirection();
+// The order here matters! Authentication - Authorization - Endpoints
+app.UseAuthentication();
+app.UseAuthorization();
 
+app.UseHttpsRedirection();
 app.MapRecordEndpoints();
 
 app.Run();
