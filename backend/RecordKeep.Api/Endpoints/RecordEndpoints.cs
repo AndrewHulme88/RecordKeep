@@ -2,11 +2,17 @@ using Microsoft.EntityFrameworkCore;
 using RecordKeep.Api.Contracts.Records;
 using RecordKeep.Domain.Records;
 using RecordKeep.Infrastructure.Persistence;
+using System.Security.Claims;
 
 namespace RecordKeep.Api.Endpoints;
 
 public static class RecordEndpoints
 {
+    private static string? GetUserId(ClaimsPrincipal user)
+    {
+        return user.FindFirst("sub")?.Value;
+    }
+
     public static IEndpointRouteBuilder MapRecordEndpoints(
         this IEndpointRouteBuilder app)
     {
@@ -25,6 +31,7 @@ public static class RecordEndpoints
 
     private static async Task<IResult> CreateRecord(
         CreateRecordRequest request,
+        ClaimsPrincipal user,
         ApplicationDbContext dbContext)
     {
         if (string.IsNullOrWhiteSpace(request.Title))
@@ -35,9 +42,17 @@ public static class RecordEndpoints
             });
         }
 
+        var userId = GetUserId(user);
+
+        if (userId is null)
+        {
+            return Results.Unauthorized();
+        }
+
         var record = new Record
         {
             Id = Guid.NewGuid(),
+            UserId = userId,
             Title = request.Title.Trim(),
             Provider = request.Provider?.Trim(),
             Description = request.Description?.Trim(),
@@ -56,10 +71,19 @@ public static class RecordEndpoints
     }
 
     private static async Task<IResult> GetRecords(
+        ClaimsPrincipal user,
         ApplicationDbContext dbContext)
     {
+        var userId = GetUserId(user);
+
+        if (userId is null)
+        {
+            return Results.Unauthorized();
+        }
+
         var records = await dbContext.Records
             .AsNoTracking()
+            .Where(record => record.UserId == userId)
             .OrderBy(record => record.ExpiryDate)
             .ThenBy(record => record.Title)
             .ToListAsync();
@@ -69,11 +93,19 @@ public static class RecordEndpoints
 
     private static async Task<IResult> GetRecordById(
         Guid id,
+        ClaimsPrincipal user,
         ApplicationDbContext dbContext)
     {
+        var userId = GetUserId(user);
+
+        if (userId is null)
+        {
+            return Results.Unauthorized();
+        }
+
         var record = await dbContext.Records
             .AsNoTracking()
-            .FirstOrDefaultAsync(record => record.Id == id);
+            .FirstOrDefaultAsync(record => record.Id == id && record.UserId == userId);
 
         return record is null
             ? Results.NotFound(new { error = "Record not found." })
@@ -83,6 +115,7 @@ public static class RecordEndpoints
     private static async Task<IResult> UpdateRecord(
         Guid id,
         UpdateRecordRequest request,
+        ClaimsPrincipal user,
         ApplicationDbContext dbContext)
     {
         if (string.IsNullOrWhiteSpace(request.Title))
@@ -93,8 +126,15 @@ public static class RecordEndpoints
             });
         }
 
+        var userId = GetUserId(user);
+
+        if (userId is null)
+        {
+            return Results.Unauthorized();
+        }
+
         var record = await dbContext.Records
-            .FirstOrDefaultAsync(record => record.Id == id);
+            .FirstOrDefaultAsync(record => record.Id == id && record.UserId == userId);
 
         if (record is null)
         {
@@ -120,10 +160,18 @@ public static class RecordEndpoints
 
     private static async Task<IResult> DeleteRecord(
         Guid id,
+        ClaimsPrincipal user,
         ApplicationDbContext dbContext)
     {
+        var userId = GetUserId(user);
+
+        if (userId is null)
+        {
+            return Results.Unauthorized();
+        }
+
         var record = await dbContext.Records
-            .FirstOrDefaultAsync(record => record.Id == id);
+            .FirstOrDefaultAsync(record => record.Id == id && record.UserId == userId);
 
         if (record is null)
         {

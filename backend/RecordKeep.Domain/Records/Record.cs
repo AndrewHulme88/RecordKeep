@@ -3,6 +3,7 @@ namespace RecordKeep.Domain.Records;
 public class Record
 {
     public Guid Id { get; set; }
+    public string UserId { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string? Provider { get; set; }
     public string? Description { get; set; }

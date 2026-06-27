@@ -47,6 +47,7 @@ var cognitoAuthority = $"https://cognito-idp.{cognitoRegion}.amazonaws.com/{cogn
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
     options.Authority = cognitoAuthority;
+    options.MapInboundClaims = false;
 
     options.TokenValidationParameters = new TokenValidationParameters
     {
