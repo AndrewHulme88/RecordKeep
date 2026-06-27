@@ -1,16 +1,21 @@
 import { getRecords } from "@/lib/records";
 import Link from "next/link";
+import AuthControls from "@/components/AuthControls";
 
 export default async function HomePage() {
   const records = await getRecords();
 
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-6 py-10">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold">RecordKeep</h1>
-        <p className="mt-2 text-gray-600">
-          Keep track of your important records and upcoming dates.
-        </p>
+      <header className="mb-8 flex items-start justify-between gap-6">
+        <div>
+          <h1 className="text-3xl font-bold">RecordKeep</h1>
+          <p className="mt-2 text-gray-600">
+            Keep track of your important records and upcoming dates.
+          </p>
+        </div>
+
+        <AuthControls />
       </header>
 
       <section>
