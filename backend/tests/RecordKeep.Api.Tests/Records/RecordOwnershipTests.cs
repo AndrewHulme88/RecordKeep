@@ -89,6 +89,40 @@ public sealed class RecordOwnershipTests : IClassFixture<RecordKeepApiFactory>
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Fact]
+    public async Task UpdateRecord_WhenOwnedByAnotherUser_ReturnsNotFound()
+    {
+        var record = await CreateRecord("user-a", "Original Title");
+
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/records/{record.Id}");
+
+        request.Headers.Add(TestAuthHandler.UserIdHeader, "user-b");
+
+        request.Content = JsonContent.Create(new
+        {
+            title = "Updated Title",
+            provider = "Updated Provider"
+        });
+
+        var response = await _client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteRecord_WhenOwnedByAnotherUser_ReturnsNotFound()
+    {
+        var record = await CreateRecord("user-a", "Private Record");
+
+        using var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/records/{record.Id}");
+
+        request.Headers.Add(TestAuthHandler.UserIdHeader, "user-b");
+
+        var response = await _client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     private async Task<RecordEntity> CreateRecord(string userId, string title)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "/api/records");
