@@ -8,6 +8,8 @@ if (!userPoolId || !userPoolClientId || !domain) {
     throw new Error("Cognito environment variables are not configured.");
 }
 
+// Configure Amplify to use the existing Cognito user pool and
+// authorization code flow for browser based sign-in
 Amplify.configure({
     Auth: {
         Cognito: {

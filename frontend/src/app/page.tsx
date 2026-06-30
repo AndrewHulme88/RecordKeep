@@ -13,6 +13,8 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Records are loaded in the browser so the Cognito access token
+  // can be attached to the API request
   useEffect(() => {
     async function loadRecords() {
       if (!apiUrl) {

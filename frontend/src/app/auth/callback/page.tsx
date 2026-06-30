@@ -12,17 +12,22 @@ export default function AuthCallbackPage() {
     let attempts = 0;
     const maximumAttempts = 20;
 
+    // Amplify may need a moment to exchange the Cognito
+    // authorisation code and make the authenticated session available
     const interval = window.setInterval(async () => {
       attempts++;
 
       try {
         await getCurrentUser();
 
+        // Stop polling once the session is available and return the 
+        // user to the dashboard
         window.clearInterval(interval);
 
         router.replace("/");
         router.refresh();
       } catch {
+        // Stop retrying after five seconds and let the user continue manually
         if (attempts >= maximumAttempts) {
           window.clearInterval(interval);
           setError("Sign-in completed, but the redirect could not finish.");
@@ -30,6 +35,7 @@ export default function AuthCallbackPage() {
       }
     }, 250);
 
+    // Prevent the interval from continuing if the component unmounts
     return () => window.clearInterval(interval);
   }, [router]);
 

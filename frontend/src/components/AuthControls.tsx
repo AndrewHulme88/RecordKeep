@@ -22,6 +22,7 @@ export default function AuthControls() {
     useEffect(() => {
         checkAuthState();
 
+        // Keep the button in sync when Amplify reports sign-in or sign-out events
         const unsubscribe = Hub.listen("auth", ({ payload }) => {
             if (payload.event === "signedIn") {
                 setIsSignedIn(true);

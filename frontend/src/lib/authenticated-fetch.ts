@@ -4,6 +4,8 @@ export async function authenticatedFetch(
     input: string,
     init: RequestInit = {},
 ): Promise<Response> {
+    // Retrieve the current Cognito session so protected API requests
+    // can include the user's access token.
     const session = await fetchAuthSession();
     const accessToken = session.tokens?.accessToken?.toString();
 

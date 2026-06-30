@@ -52,6 +52,7 @@ export default function EditRecordForm({
         referenceNumber: referenceNumber.trim() || undefined,
         startDate: startDate || undefined,
         expiryDate: expiryDate || undefined,
+        // Convert the input value from a string to a number before sending it.
         amount: amount ? Number(amount) : undefined,
       });
 

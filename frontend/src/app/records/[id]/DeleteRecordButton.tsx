@@ -27,6 +27,7 @@ export default function DeleteRecordButton({
       router.refresh();
     } catch {
       setError("Something went wrong while deleting the record.");
+    } finally {
       setIsDeleting(false);
     }
   }
