@@ -20,8 +20,8 @@ public static class RecordEndpoints
             .WithTags("Records")
             .RequireAuthorization();
 
-        group.MapPost("/", CreateRecord);
-        group.MapGet("/", GetRecords);
+        group.MapPost("", CreateRecord);
+        group.MapGet("", GetRecords);
         group.MapGet("/{id:guid}", GetRecordById);
         group.MapPut("/{id:guid}", UpdateRecord);
         group.MapDelete("/{id:guid}", DeleteRecord);

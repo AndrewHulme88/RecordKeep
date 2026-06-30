@@ -11,13 +11,16 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var connectionString =
-    builder.Configuration.GetConnectionString("Database")
-    ?? throw new InvalidOperationException("Database connection string was not found.");
+// Register the PostgreSQL Entity Framework Core database context if not in testing
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    var connectionString =
+        builder.Configuration.GetConnectionString("Database")
+        ?? throw new InvalidOperationException("Database connection string was not found.");
 
-// Register the PostgreSQL Entity Framework Core database context
-builder.Services.AddDbContext<ApplicationDbContext>(Options =>
-    Options.UseNpgsql(connectionString));
+    builder.Services.AddDbContext<ApplicationDbContext>(Options =>
+        Options.UseNpgsql(connectionString));
+}
 
 // Allow the local Next.js frontend to call the API during development
 builder.Services.AddCors(options =>
@@ -102,7 +105,12 @@ app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseHttpsRedirection();
+// Remove from test pipeline to prevent warnings in the tests
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    app.UseHttpsRedirection();
+}
+
 app.MapRecordEndpoints();
 
 app.Run();

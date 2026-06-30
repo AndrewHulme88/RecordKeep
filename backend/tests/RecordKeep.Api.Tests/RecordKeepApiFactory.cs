@@ -10,23 +10,17 @@ namespace RecordKeep.Api.Tests;
 
 public sealed class RecordKeepApiFactory : WebApplicationFactory<Program>
 {
+    // Create one single database for use with tests to avoid a new database being created for each action
+    private readonly string _databaseName = $"RecordKeepTests-{Guid.NewGuid()}";
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
 
         builder.ConfigureServices(services =>
         {
-            var dbContextDescriptor = services.SingleOrDefault(
-                descriptor => descriptor.ServiceType == typeof(DbContextOptions<ApplicationDbContext>));
-
-            if (dbContextDescriptor is not null)
-            {
-                services.Remove(dbContextDescriptor);
-            }
-
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                options.UseInMemoryDatabase($"RecordKeepTests-{Guid.NewGuid()}");
+                options.UseInMemoryDatabase(_databaseName);
             });
 
             services.AddAuthentication(options =>
