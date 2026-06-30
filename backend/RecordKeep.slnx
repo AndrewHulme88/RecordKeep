@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/RecordKeep.Api.Tests/RecordKeep.Api.Tests.csproj" />
+  </Folder>
   <Project Path="RecordKeep.Api/RecordKeep.Api.csproj" />
   <Project Path="RecordKeep.Application/RecordKeep.Application.csproj" />
   <Project Path="RecordKeep.Domain/RecordKeep.Domain.csproj" />

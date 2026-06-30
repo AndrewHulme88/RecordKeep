@@ -1,0 +1,6 @@
+{
+  "RecordKeep.Api, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/andrew\/Code\/Projects\/record-keep\/backend\/RecordKeep.Api",
+  "RecordKeep.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/andrew\/Code\/Projects\/record-keep\/backend\/RecordKeep.Application",
+  "RecordKeep.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/andrew\/Code\/Projects\/record-keep\/backend\/RecordKeep.Domain",
+  "RecordKeep.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "\/Users\/andrew\/Code\/Projects\/record-keep\/backend\/RecordKeep.Infrastructure"
+}

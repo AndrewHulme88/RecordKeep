@@ -106,3 +106,6 @@ app.UseHttpsRedirection();
 app.MapRecordEndpoints();
 
 app.Run();
+
+// Makes the generated Program type available to the test project
+public partial class Program;
