@@ -159,6 +159,55 @@ public sealed class RecordOwnershipTests : IClassFixture<RecordKeepApiFactory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Fact]
+    public async Task UpdateRecord_WhenOwnedByCurrentUser_ReturnsOk()
+    {
+        var record = await CreateRecord("user-a", "Original Title");
+
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/records/{record.Id}");
+
+        request.Headers.Add(TestAuthHandler.UserIdHeader, "user-a");
+
+        request.Content = JsonContent.Create(new
+        {
+            title = "Updated Title",
+            provider = "Updated Provider"
+        });
+
+        var response = await _client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var updatedRecord = await response.Content.ReadFromJsonAsync<RecordEntity>();
+
+        Assert.NotNull(updatedRecord);
+        Assert.Equal("Updated Title", updatedRecord.Title);
+        Assert.Equal("Updated Provider", updatedRecord.Provider);
+        Assert.Equal("user-a", updatedRecord.UserId);
+    }
+
+    [Fact]
+    public async Task DeleteRecord_WhenOwnedByCurrentUser_ReturnsNoContent()
+    {
+        var record = await CreateRecord("user-a", "Record To Delete");
+
+        using var deleteRequest = new HttpRequestMessage(HttpMethod.Delete, $"/api/records/{record.Id}");
+
+        deleteRequest.Headers.Add(TestAuthHandler.UserIdHeader, "user-a");
+
+        var deleteResponse = await _client.SendAsync(deleteRequest);
+
+        Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
+
+        using var getRequest = new HttpRequestMessage(HttpMethod.Get, $"/api/records/{record.Id}");
+
+        getRequest.Headers.Add(TestAuthHandler.UserIdHeader, "user-a");
+
+        var getResponse = await _client.SendAsync(getRequest);
+
+        Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
+    }
+
     private async Task<RecordEntity> CreateRecord(string userId, string title)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "/api/records");
