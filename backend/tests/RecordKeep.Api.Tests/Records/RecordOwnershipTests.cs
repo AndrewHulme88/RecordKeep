@@ -123,6 +123,42 @@ public sealed class RecordOwnershipTests : IClassFixture<RecordKeepApiFactory>
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Fact]
+    public async Task CreateRecord_WithBlankTitle_ReturnsBadRequest()
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/records");
+
+        request.Headers.Add(TestAuthHandler.UserIdHeader, "user-a");
+
+        request.Content = JsonContent.Create(new
+        {
+            title = "   "
+        });
+
+        var response = await _client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateRecord_WithBlankTitle_ReturnsBadRequest()
+    {
+        var record = await CreateRecord("user-a", "Original Title");
+
+        using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/records/{record.Id}");
+
+        request.Headers.Add(TestAuthHandler.UserIdHeader, "user-a");
+
+        request.Content = JsonContent.Create(new
+        {
+            title = "   "
+        });
+
+        var response = await _client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     private async Task<RecordEntity> CreateRecord(string userId, string title)
     {
         using var request = new HttpRequestMessage(HttpMethod.Post, "/api/records");
