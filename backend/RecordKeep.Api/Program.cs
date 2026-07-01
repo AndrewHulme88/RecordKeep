@@ -87,9 +87,34 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
     };
 });
 
+builder.Services.AddProblemDetails();
+
+// Log error messages internally instead of exposing them
+builder.Services.AddExceptionHandler(options =>
+{
+    options.ExceptionHandler = async context =>
+    {
+        var problemDetailsService = context.RequestServices.GetRequiredService<IProblemDetailsService>();
+
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+        await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
+        {
+            HttpContext = context,
+            ProblemDetails =
+            {
+                Title = "An unexpected error occured.",
+                Status = StatusCodes.Status500InternalServerError
+            }
+        });
+    };
+});
+
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
