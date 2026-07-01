@@ -29,40 +29,53 @@ namespace RecordKeep.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<decimal?>("Amount")
-                        .HasColumnType("numeric");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<DateOnly?>("ExpiryDate")
                         .HasColumnType("date");
 
                     b.Property<string>("Provider")
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("ReferenceNumber")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateOnly?>("StartDate")
                         .HasColumnType("date");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTime>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Records");
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Records", t =>
+                        {
+                            t.HasCheckConstraint("CK_Records_Amount_NonNegative", "\"Amount\" IS NULL OR \"Amount\" >= 0");
+
+                            t.HasCheckConstraint("CK_Records_ExpiryDate_After_StartDate", "\"StartDate\" IS NULL OR \"ExpiryDate\" IS NULL OR \"ExpiryDate\" >= \"StartDate\"");
+                        });
                 });
 #pragma warning restore 612, 618
         }
