@@ -3,6 +3,7 @@ using RecordKeep.Api.Contracts.Records;
 using RecordKeep.Domain.Records;
 using RecordKeep.Infrastructure.Persistence;
 using System.Security.Claims;
+using RecordKeep.Api.Validation;
 
 namespace RecordKeep.Api.Endpoints;
 
@@ -47,6 +48,14 @@ public static class RecordEndpoints
         if (userId is null)
         {
             return Results.Unauthorized();
+        }
+
+        // Check if new record meets the validation rules set in RecordRequestValidator
+        var validationErrors = RecordRequestValidator.Validate(request);
+
+        if (validationErrors.Count > 0)
+        {
+            return Results.ValidationProblem(validationErrors);
         }
 
         var record = new Record
@@ -131,6 +140,14 @@ public static class RecordEndpoints
         if (userId is null)
         {
             return Results.Unauthorized();
+        }
+
+        // Check if updated record meets the validation rules set in RecordRequestValidator
+        var validationErrors = RecordRequestValidator.Validate(request);
+
+        if (validationErrors.Count > 0)
+        {
+            return Results.ValidationProblem(validationErrors);
         }
 
         var record = await dbContext.Records
