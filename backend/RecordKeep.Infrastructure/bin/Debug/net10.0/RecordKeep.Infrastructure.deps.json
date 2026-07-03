@@ -8,6 +8,7 @@
     ".NETCoreApp,Version=v10.0": {
       "RecordKeep.Infrastructure/1.0.0": {
         "dependencies": {
+          "AWSSDK.S3": "4.0.100.1",
           "Microsoft.EntityFrameworkCore.Design": "10.0.4",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.2",
           "RecordKeep.Application": "1.0.0",
@@ -15,6 +16,25 @@
         },
         "runtime": {
           "RecordKeep.Infrastructure.dll": {}
+        }
+      },
+      "AWSSDK.Core/4.0.100.1": {
+        "runtime": {
+          "lib/net8.0/AWSSDK.Core.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.100.1"
+          }
+        }
+      },
+      "AWSSDK.S3/4.0.100.1": {
+        "dependencies": {
+          "AWSSDK.Core": "4.0.100.1"
+        },
+        "runtime": {
+          "lib/net8.0/AWSSDK.S3.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.100.1"
+          }
         }
       },
       "Humanizer.Core/2.14.1": {
@@ -620,6 +640,20 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "AWSSDK.Core/4.0.100.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-kOSGVgWvxz3V8CYX9BDQ46DLsHumW0YjOMJHpns5iNCt1kzEISpTluL/+HMmXMoqIS+KSeoEvjtJWclaoGVlKw==",
+      "path": "awssdk.core/4.0.100.1",
+      "hashPath": "awssdk.core.4.0.100.1.nupkg.sha512"
+    },
+    "AWSSDK.S3/4.0.100.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-iG570ekeZyBcMNIVX0AjeZRKT7+PPrRrhi2KkDULYmmDScGFMSeshDn5EqBmiMLd31BQeSZvZhIxAEXQTWLdpA==",
+      "path": "awssdk.s3/4.0.100.1",
+      "hashPath": "awssdk.s3.4.0.100.1.nupkg.sha512"
     },
     "Humanizer.Core/2.14.1": {
       "type": "package",

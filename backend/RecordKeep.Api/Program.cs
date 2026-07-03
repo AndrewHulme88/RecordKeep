@@ -3,6 +3,9 @@ using RecordKeep.Infrastructure.Persistence;
 using RecordKeep.Api.Endpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Amazon.S3;
+using RecordKeep.Application.Documents;
+using RecordKeep.Infrastructure.Documents;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,6 +89,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         }
     };
 });
+
+builder.Services.AddOptions<S3Options>().Bind(builder.Configuration.GetSection(S3Options.SectionName))
+    .Validate(
+    options => !string.IsNullOrWhiteSpace(options.BucketName), "S3 bucket name is required.")
+    .ValidateOnStart();
+
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
+
+    builder.Services.AddAWSService<IAmazonS3>();
+
+    builder.Services.AddScoped<IDocumentStorageService, S3DocumentStorageService>();
+}
 
 builder.Services.AddProblemDetails();
 

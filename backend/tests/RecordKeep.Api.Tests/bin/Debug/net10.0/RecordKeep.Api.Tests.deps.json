@@ -360,6 +360,48 @@
           "RecordKeep.Api.Tests.dll": {}
         }
       },
+      "AWSSDK.Core/4.0.100.1": {
+        "runtime": {
+          "lib/net8.0/AWSSDK.Core.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.100.1"
+          }
+        },
+        "compile": {
+          "lib/net8.0/AWSSDK.Core.dll": {}
+        }
+      },
+      "AWSSDK.Extensions.NETCore.Setup/4.0.100.1": {
+        "dependencies": {
+          "AWSSDK.Core": "4.0.100.1",
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.4",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.4",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.4"
+        },
+        "runtime": {
+          "lib/net8.0/AWSSDK.Extensions.NETCore.Setup.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.100.1"
+          }
+        },
+        "compile": {
+          "lib/net8.0/AWSSDK.Extensions.NETCore.Setup.dll": {}
+        }
+      },
+      "AWSSDK.S3/4.0.100.1": {
+        "dependencies": {
+          "AWSSDK.Core": "4.0.100.1"
+        },
+        "runtime": {
+          "lib/net8.0/AWSSDK.S3.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.0.100.1"
+          }
+        },
+        "compile": {
+          "lib/net8.0/AWSSDK.S3.dll": {}
+        }
+      },
       "Microsoft.AspNetCore.Authentication.JwtBearer/10.0.4": {
         "dependencies": {
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "8.0.1"
@@ -1033,6 +1075,7 @@
       },
       "RecordKeep.Api/1.0.0": {
         "dependencies": {
+          "AWSSDK.Extensions.NETCore.Setup": "4.0.100.1",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "10.0.4",
           "Microsoft.AspNetCore.OpenApi": "10.0.9",
           "RecordKeep.Application": "1.0.0",
@@ -1076,6 +1119,7 @@
       },
       "RecordKeep.Infrastructure/1.0.0": {
         "dependencies": {
+          "AWSSDK.S3": "4.0.100.1",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "10.0.2",
           "RecordKeep.Application": "1.0.0",
           "RecordKeep.Domain": "1.0.0"
@@ -3195,6 +3239,27 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "AWSSDK.Core/4.0.100.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-kOSGVgWvxz3V8CYX9BDQ46DLsHumW0YjOMJHpns5iNCt1kzEISpTluL/+HMmXMoqIS+KSeoEvjtJWclaoGVlKw==",
+      "path": "awssdk.core/4.0.100.1",
+      "hashPath": "awssdk.core.4.0.100.1.nupkg.sha512"
+    },
+    "AWSSDK.Extensions.NETCore.Setup/4.0.100.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-BbyTnJcTSHmnjNVQjqg3R3GwB0WYlQ2DieB7WW+5w9K7kh4BDM7iTAjtIHkwGwLDopC4/GtkuKnosOzUiHBqkQ==",
+      "path": "awssdk.extensions.netcore.setup/4.0.100.1",
+      "hashPath": "awssdk.extensions.netcore.setup.4.0.100.1.nupkg.sha512"
+    },
+    "AWSSDK.S3/4.0.100.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-iG570ekeZyBcMNIVX0AjeZRKT7+PPrRrhi2KkDULYmmDScGFMSeshDn5EqBmiMLd31BQeSZvZhIxAEXQTWLdpA==",
+      "path": "awssdk.s3/4.0.100.1",
+      "hashPath": "awssdk.s3.4.0.100.1.nupkg.sha512"
     },
     "Microsoft.AspNetCore.Authentication.JwtBearer/10.0.4": {
       "type": "package",

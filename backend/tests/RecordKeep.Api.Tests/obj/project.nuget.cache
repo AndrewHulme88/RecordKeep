@@ -1,9 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "F4X2oOK+BSQ=",
+  "dgSpecHash": "ojLK7CskH0I=",
   "success": true,
   "projectFilePath": "/Users/andrew/Code/Projects/record-keep/backend/tests/RecordKeep.Api.Tests/RecordKeep.Api.Tests.csproj",
   "expectedPackageFiles": [
+    "/Users/andrew/.nuget/packages/awssdk.core/4.0.100.1/awssdk.core.4.0.100.1.nupkg.sha512",
+    "/Users/andrew/.nuget/packages/awssdk.extensions.netcore.setup/4.0.100.1/awssdk.extensions.netcore.setup.4.0.100.1.nupkg.sha512",
+    "/Users/andrew/.nuget/packages/awssdk.s3/4.0.100.1/awssdk.s3.4.0.100.1.nupkg.sha512",
     "/Users/andrew/.nuget/packages/coverlet.collector/6.0.4/coverlet.collector.6.0.4.nupkg.sha512",
     "/Users/andrew/.nuget/packages/microsoft.aspnetcore.authentication.jwtbearer/10.0.4/microsoft.aspnetcore.authentication.jwtbearer.10.0.4.nupkg.sha512",
     "/Users/andrew/.nuget/packages/microsoft.aspnetcore.mvc.testing/10.0.4/microsoft.aspnetcore.mvc.testing.10.0.4.nupkg.sha512",
