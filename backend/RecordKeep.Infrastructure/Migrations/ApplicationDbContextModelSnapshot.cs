@@ -22,6 +22,56 @@ namespace RecordKeep.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("RecordKeep.Domain.Documents.RecordDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ObjectKey")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("RecordId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ObjectKey")
+                        .IsUnique();
+
+                    b.HasIndex("RecordId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RecordDocuments", t =>
+                        {
+                            t.HasCheckConstraint("CK_RecordDocuments_SizeBytes_Positive", "\"SizeBytes\" > 0");
+                        });
+                });
+
             modelBuilder.Entity("RecordKeep.Domain.Records.Record", b =>
                 {
                     b.Property<Guid>("Id")
@@ -76,6 +126,22 @@ namespace RecordKeep.Infrastructure.Migrations
 
                             t.HasCheckConstraint("CK_Records_ExpiryDate_After_StartDate", "\"StartDate\" IS NULL OR \"ExpiryDate\" IS NULL OR \"ExpiryDate\" >= \"StartDate\"");
                         });
+                });
+
+            modelBuilder.Entity("RecordKeep.Domain.Documents.RecordDocument", b =>
+                {
+                    b.HasOne("RecordKeep.Domain.Records.Record", "Record")
+                        .WithMany("Documents")
+                        .HasForeignKey("RecordId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Record");
+                });
+
+            modelBuilder.Entity("RecordKeep.Domain.Records.Record", b =>
+                {
+                    b.Navigation("Documents");
                 });
 #pragma warning restore 612, 618
         }

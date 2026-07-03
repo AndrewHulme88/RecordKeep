@@ -1,3 +1,5 @@
+using RecordKeep.Domain.Documents;
+
 namespace RecordKeep.Domain.Records;
 
 public class Record
@@ -13,4 +15,5 @@ public class Record
     public decimal? Amount { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     public DateTime UpdatedAtUtc { get; set; }
+    public ICollection<RecordDocument> Documents { get; set; } = new List<RecordDocument>();
 }
