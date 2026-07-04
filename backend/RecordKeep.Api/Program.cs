@@ -154,7 +154,7 @@ if (!app.Environment.IsEnvironment("Testing"))
 }
 
 app.MapRecordEndpoints();
-
+app.MapDocumentEndpoints();
 app.Run();
 
 // Makes the generated Program type available to the test project
