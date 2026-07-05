@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using RecordKeep.Api.Tests.Authentication;
 using RecordKeep.Infrastructure.Persistence;
+using RecordKeep.Application.Documents;
+using RecordKeep.Api.Tests.Documents;
 
 namespace RecordKeep.Api.Tests;
 
@@ -22,6 +24,11 @@ public sealed class RecordKeepApiFactory : WebApplicationFactory<Program>
             {
                 options.UseInMemoryDatabase(_databaseName);
             });
+
+            services.AddSingleton<FakeDocumentStorageService>();
+
+            services.AddSingleton<IDocumentStorageService>(serviceProvider =>
+                serviceProvider.GetRequiredService<FakeDocumentStorageService>());
 
             services.AddAuthentication(options =>
             {

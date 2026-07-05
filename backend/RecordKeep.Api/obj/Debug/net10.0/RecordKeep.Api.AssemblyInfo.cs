@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RecordKeep.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0424913c38cdcf2bddf9e8ea6720db13c863e9a1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8d7c88cbd30ee5438159e66584417649c0e9e2d5")]
 [assembly: System.Reflection.AssemblyProductAttribute("RecordKeep.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RecordKeep.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
