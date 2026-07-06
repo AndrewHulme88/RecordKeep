@@ -31,10 +31,14 @@ public static class DocumentRequestValidator
         {
             errors["contentType"] = ["Content type is required."];
         }
-
-        else if (!AllowedContentTypes.Contains(request.ContentType))
+        else if (!AllowedContentTypes.Contains(
+            request.ContentType,
+            StringComparer.OrdinalIgnoreCase))
         {
-            errors["contentType"] = ["Only PDF, JPEG, and PNG files are supported."];
+            errors["contentType"] =
+            [
+                "Only PDF, JPEG, and PNG files are supported."
+            ];
         }
 
         if (request.SizeBytes <= 0)

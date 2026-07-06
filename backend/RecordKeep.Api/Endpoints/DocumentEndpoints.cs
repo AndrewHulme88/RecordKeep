@@ -5,6 +5,7 @@ using RecordKeep.Api.Validation;
 using RecordKeep.Application.Documents;
 using RecordKeep.Domain.Documents;
 using RecordKeep.Infrastructure.Persistence;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace RecordKeep.Api.Endpoints;
 
@@ -13,12 +14,11 @@ public static class DocumentEndpoints
     public static void MapDocumentEndpoints(
         this WebApplication app)
     {
-        var group = app.MapGroup("/api/records")
-            .RequireAuthorization();
+        var group = app.MapGroup("/api/records").RequireAuthorization();
 
-        group.MapPost(
-            "/{recordId:guid}/documents/upload-url",
-            CreateUploadUrl);
+        group.MapPost("/{recordId:guid}/documents/upload-url", CreateUploadUrl);
+
+        group.MapGet("/{recordId:guid}/documents", GetDocuments);
     }
 
     private static async Task<IResult> CreateUploadUrl(
@@ -94,6 +94,42 @@ public static class DocumentEndpoints
                 ObjectKey = objectKey,
                 ExpiresAtUtc = expiresAtUtc
             });
+    }
+
+    private static async Task<IResult> GetDocuments(
+        Guid recordId,
+        ClaimsPrincipal user,
+        ApplicationDbContext dbContext)
+    {
+        var userId = GetUserId(user);
+
+        if (userId is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var recordExists = await dbContext.Records.AnyAsync(
+            record => record.Id == recordId && record.UserId == userId);
+
+        if (!recordExists)
+        {
+            return Results.NotFound();
+        }
+
+        var documents = await dbContext.RecordDocuments.Where(document =>
+            document.RecordId == recordId && document.UserId == userId)
+                .OrderByDescending(document => document.CreatedAtUtc)
+                .Select(document => new DocumentResponse
+                {
+                    Id = document.Id,
+                    RecordId = document.RecordId,
+                    OriginalFileName = document.OriginalFileName,
+                    ContentType = document.ContentType,
+                    SizeBytes = document.SizeBytes,
+                    CreatedAtUtc = document.CreatedAtUtc
+                }).ToListAsync();
+        
+        return Results.Ok(documents);
     }
 
     private static string? GetUserId(
