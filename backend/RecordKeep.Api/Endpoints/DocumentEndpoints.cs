@@ -19,6 +19,8 @@ public static class DocumentEndpoints
         group.MapPost("/{recordId:guid}/documents/upload-url", CreateUploadUrl);
 
         group.MapGet("/{recordId:guid}/documents", GetDocuments);
+
+        group.MapGet("/{recordId:guid}/documents/{documentId:guid}/download-url", CreateDownloadUrl);
     }
 
     private static async Task<IResult> CreateUploadUrl(
@@ -130,6 +132,42 @@ public static class DocumentEndpoints
                 }).ToListAsync();
         
         return Results.Ok(documents);
+    }
+
+    private static async Task<IResult> CreateDownloadUrl(
+        Guid recordId,
+        Guid documentId,
+        ClaimsPrincipal user,
+        ApplicationDbContext dbContext,
+        IDocumentStorageService documentStorageService)
+    {
+        var userId = GetUserId(user);
+
+        if (userId is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var document = await dbContext.RecordDocuments.Where(document =>
+            document.Id == documentId &&
+            document.RecordId == recordId &&
+            document.UserId == userId).SingleOrDefaultAsync();
+
+        if (document is null)
+        {
+            return Results.NotFound();
+        }
+
+        var expiresIn = TimeSpan.FromMinutes(5);
+        var expiresAtUtc = DateTime.UtcNow.Add(expiresIn);
+        var downloadUrl = documentStorageService.CreateDownloadUrl(document.ObjectKey, expiresIn);
+
+        return Results.Ok(new CreateDocumentDownloadUrlResponse
+        {
+            DocumentId = documentId,
+            DownloadUrl = downloadUrl,
+            ExpiresAtUtc = expiresAtUtc
+        });
     }
 
     private static string? GetUserId(
