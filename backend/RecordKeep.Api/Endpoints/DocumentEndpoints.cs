@@ -21,6 +21,8 @@ public static class DocumentEndpoints
         group.MapGet("/{recordId:guid}/documents", GetDocuments);
 
         group.MapGet("/{recordId:guid}/documents/{documentId:guid}/download-url", CreateDownloadUrl);
+
+        group.MapDelete("/{recordId:guid}/documents/{documentId:guid}", DeleteDocument);
     }
 
     private static async Task<IResult> CreateUploadUrl(
@@ -168,6 +170,39 @@ public static class DocumentEndpoints
             DownloadUrl = downloadUrl,
             ExpiresAtUtc = expiresAtUtc
         });
+    }
+
+    private static async Task<IResult> DeleteDocument(
+        Guid recordId,
+        Guid documentId,
+        ClaimsPrincipal user,
+        ApplicationDbContext dbContext,
+        IDocumentStorageService documentStorageService)
+    {
+        var userId = GetUserId(user);
+
+        if (userId is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var document = await dbContext.RecordDocuments.Where(document =>
+            document.Id == documentId &&
+            document.RecordId == recordId &&
+            document.UserId == userId).SingleOrDefaultAsync();
+
+        if (document is null)
+        {
+            return Results.NotFound();
+        }
+
+        await documentStorageService.DeleteAsync(document.ObjectKey);
+
+        dbContext.RecordDocuments.Remove(document);
+
+        await dbContext.SaveChangesAsync();
+
+        return Results.NoContent();
     }
 
     private static string? GetUserId(
