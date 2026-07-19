@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 import { getCurrentUser, signInWithRedirect, signOut } from "aws-amplify/auth";
 import { Hub } from "aws-amplify/utils";
 
@@ -8,32 +8,46 @@ export default function AuthControls() {
     const [isSignedIn, setIsSignedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    async function checkAuthState() {
-        try {
-            await getCurrentUser();
-            setIsSignedIn(true);
-        } catch {
-            setIsSignedIn(false);
-        } finally {
-            setIsLoading(false);
-        }
-    }
-
     useEffect(() => {
-        checkAuthState();
+        let isMounted = true;
+
+        async function loadAuthState() {
+            try {
+                await getCurrentUser();
+
+                if (isMounted) {
+                    setIsSignedIn(true);
+                }
+            } catch {
+                if (isMounted) {
+                    setIsSignedIn(false);
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
+            }
+        }
+
+        void loadAuthState();
 
         // Keep the button in sync when Amplify reports sign-in or sign-out events
         const unsubscribe = Hub.listen("auth", ({ payload }) => {
             if (payload.event === "signedIn") {
                 setIsSignedIn(true);
+                setIsLoading(false);
             }
 
             if (payload.event === "signedOut") {
                 setIsSignedIn(false);
+                setIsLoading(false);
             }
         });
 
-        return unsubscribe;
+        return () => {
+            isMounted = false;
+            unsubscribe();
+        };
     }, []);
 
     async function handleSignIn() {
