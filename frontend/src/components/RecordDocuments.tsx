@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { createDocumentDownloadUrl, deleteDocument, DocumentItem, getDocuments, uploadDocument, } from "@/lib/documents";
 
 type RecordDocumentsProps = { recordId: string; };
@@ -12,6 +12,8 @@ export default function RecordDocuments({ recordId, }: RecordDocumentsProps) {
     const [isUploading, setIsUploading] = useState(false);
     const [deletingDocumentId, setDeletingDocumentId] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
         let isMounted = true;
@@ -71,6 +73,10 @@ export default function RecordDocuments({ recordId, }: RecordDocumentsProps) {
             await refreshDocuments();
 
             setSelectedFile(null);
+
+            if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+            }
         } catch (error) {
             console.error("Failed to upload document:", error);
             setErrorMessage("Could not upload document.");
@@ -122,6 +128,7 @@ export default function RecordDocuments({ recordId, }: RecordDocumentsProps) {
 
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <input
+                    ref={fileInputRef}
                     type="file"
                     accept="application/pdf,image/jpeg,image/png"
                     onChange={handleFileChange}
