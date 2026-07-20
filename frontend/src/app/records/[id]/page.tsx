@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import DeleteRecordButton from "./DeleteRecordButton";
 import { getRecordById } from "@/lib/records";
 import type { RecordItem } from "@/types/record";
+import RecordDocuments from "@/components/RecordDocuments";
 
 export default function RecordDetailsPage() {
   const params = useParams<{ id: string }>();
@@ -33,7 +34,7 @@ export default function RecordDetailsPage() {
       }
     }
 
-    loadRecord();
+    void loadRecord();
   }, [id]);
 
   if (isLoading) {
@@ -119,6 +120,10 @@ export default function RecordDetailsPage() {
           }
         />
       </section>
+
+      <div className="mt-8">
+        <RecordDocuments recordId={record.id} />
+      </div>
     </main>
   );
 }
