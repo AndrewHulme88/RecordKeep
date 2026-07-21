@@ -13,4 +13,5 @@ public sealed class RecordDocument
     public long SizeBytes { get; set; }
     public DateTime CreatedAtUtc { get; set; }
     public RecordEntity Record { get; set; } = null!;
+    public bool IsUploaded { get; set; }
 }

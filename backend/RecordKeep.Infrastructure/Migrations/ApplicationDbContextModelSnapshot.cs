@@ -36,6 +36,9 @@ namespace RecordKeep.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("IsUploaded")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("ObjectKey")
                         .IsRequired()
                         .HasMaxLength(1024)

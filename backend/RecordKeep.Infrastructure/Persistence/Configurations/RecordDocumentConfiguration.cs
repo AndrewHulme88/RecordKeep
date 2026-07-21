@@ -14,6 +14,7 @@ public sealed class RecordDocumentConfiguration : IEntityTypeConfiguration<Recor
         builder.Property(document => document.ObjectKey).IsRequired().HasMaxLength(1024);
         builder.Property(document => document.ContentType).IsRequired().HasMaxLength(100);
         builder.Property(document => document.SizeBytes).IsRequired();
+        builder.Property(document => document.IsUploaded).IsRequired();
         builder.Property(document => document.CreatedAtUtc).IsRequired();
         builder.HasOne(document => document.Record)
             .WithMany(record => record.Documents)
