@@ -124,7 +124,7 @@ public static class DocumentEndpoints
         }
 
         var documents = await dbContext.RecordDocuments.Where(document =>
-            document.RecordId == recordId && document.UserId == userId)
+            document.RecordId == recordId && document.UserId == userId && document.IsUploaded)
                 .OrderByDescending(document => document.CreatedAtUtc)
                 .Select(document => new DocumentResponse
                 {
@@ -154,9 +154,8 @@ public static class DocumentEndpoints
         }
 
         var document = await dbContext.RecordDocuments.Where(document =>
-            document.Id == documentId &&
-            document.RecordId == recordId &&
-            document.UserId == userId).SingleOrDefaultAsync();
+            document.Id == documentId && document.RecordId == recordId &&
+            document.UserId == userId && document.IsUploaded).SingleOrDefaultAsync();
 
         if (document is null)
         {
