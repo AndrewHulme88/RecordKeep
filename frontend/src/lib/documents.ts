@@ -104,6 +104,8 @@ export async function uploadDocument(
   if (!s3Response.ok) {
     throw new Error(`Failed to upload document: ${s3Response.status}`);
   }
+
+  await completeDocumentUpload(recordId, uploadDetails.documentId);
 }
 
 export async function createDocumentDownloadUrl(
@@ -155,3 +157,24 @@ export async function deleteDocument(
     throw new Error(`Failed to delete document: ${response.status}`);
   }
 }
+
+async function completeDocumentUpload(recordId: string, documentId: string): Promise<void> {
+  const response = await authenticatedFetch(
+    `${getApiUrl()}/api/records/${recordId}/documents/${documentId}/complete`,
+    {
+      method: "POST",
+    },
+  );
+
+  if (response.status === 401) {
+    throw new Error("You must be signed in.");
+  }
+
+  if (response.status === 404) {
+    throw new Error("Document not found.");
+  }
+
+  if (!response.ok) {
+    throw new Error(`Failed to complete document upload: ${response.status}`);
+  }
+};
