@@ -23,6 +23,8 @@ public static class DocumentEndpoints
         group.MapGet("/{recordId:guid}/documents/{documentId:guid}/download-url", CreateDownloadUrl);
 
         group.MapDelete("/{recordId:guid}/documents/{documentId:guid}", DeleteDocument);
+
+        group.MapPost("/{recordId:guid}/documents/{documentId:guid}/complete", CompleteUpload);
     }
 
     private static async Task<IResult> CreateUploadUrl(
@@ -83,6 +85,7 @@ public static class DocumentEndpoints
             ObjectKey = objectKey,
             ContentType = request.ContentType,
             SizeBytes = request.SizeBytes,
+            IsUploaded = false,
             CreatedAtUtc = DateTime.UtcNow
         };
 
@@ -223,5 +226,33 @@ public static class DocumentEndpoints
 
         return
             $"users/{userId}/records/{recordId}/documents/{documentId}{extension}";
+    }
+
+    private static async Task<IResult> CompleteUpload(
+        Guid recordId,
+        Guid documentId,
+        ClaimsPrincipal user,
+        ApplicationDbContext dbContext)
+    {
+        var userId = GetUserId(user);
+
+        if (userId is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var document = await dbContext.RecordDocuments.Where(document =>
+            document.Id == documentId && document.RecordId == recordId && document.UserId == userId).SingleOrDefaultAsync();
+
+        if (document is null)
+        {
+            return Results.NotFound();
+        }
+
+        document.IsUploaded = true;
+
+        await dbContext.SaveChangesAsync();
+
+        return Results.NoContent();
     }
 }
