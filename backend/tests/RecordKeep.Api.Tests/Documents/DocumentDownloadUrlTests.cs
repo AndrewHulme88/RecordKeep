@@ -36,6 +36,11 @@ public sealed class DocumentDownloadUrlTests : IClassFixture<RecordKeepApiFactor
             "policy.pdf",
             "application/pdf");
 
+        await CompleteUpload(
+            "user-a",
+            record.Id,
+            uploadResponse.DocumentId);
+
         var response = await _client.GetAsync($"/api/records/{record.Id}/documents/{uploadResponse.DocumentId}/download-url");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -51,6 +56,11 @@ public sealed class DocumentDownloadUrlTests : IClassFixture<RecordKeepApiFactor
             record.Id,
             "policy.pdf",
             "application/pdf");
+
+        await CompleteUpload(
+            "user-a",
+            record.Id,
+            uploadResponse.DocumentId);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, $"/api/records/{record.Id}/documents/{uploadResponse.DocumentId}/download-url");
 
@@ -71,6 +81,11 @@ public sealed class DocumentDownloadUrlTests : IClassFixture<RecordKeepApiFactor
             record.Id,
             "policy.pdf",
             "application/pdf");
+
+        await CompleteUpload(
+            "user-a",
+            record.Id,
+            uploadResponse.DocumentId);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, $"/api/records/{record.Id}/documents/{uploadResponse.DocumentId}/download-url");
 
@@ -99,6 +114,11 @@ public sealed class DocumentDownloadUrlTests : IClassFixture<RecordKeepApiFactor
             firstRecord.Id,
             "policy.pdf",
             "application/pdf");
+
+        await CompleteUpload(
+            "user-a",
+            firstRecord.Id,
+            uploadResponse.DocumentId);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, $"/api/records/{secondRecord.Id}/documents/{uploadResponse.DocumentId}/download-url");
 
@@ -153,5 +173,19 @@ public sealed class DocumentDownloadUrlTests : IClassFixture<RecordKeepApiFactor
         var uploadResponse = await response.Content.ReadFromJsonAsync<CreateDocumentUploadUrlResponse>();
 
         return uploadResponse ?? throw new InvalidOperationException("Upload URL response was empty.");
+    }
+
+        private async Task CompleteUpload(
+        string userId,
+        Guid recordId,
+        Guid documentId)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/records/{recordId}/documents/{documentId}/complete");
+
+        request.Headers.Add(TestAuthHandler.UserIdHeader, userId);
+
+        var response = await _client.SendAsync(request);
+
+        response.EnsureSuccessStatusCode();
     }
 }

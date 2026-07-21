@@ -52,8 +52,27 @@ public sealed class DocumentListTests : IClassFixture<RecordKeepApiFactory>
     {
         var record = await CreateRecord("user-a", "Insurance");
 
-        await CreateUploadUrl("user-a", record.Id, "policy.pdf", "application/pdf");
-        await CreateUploadUrl("user-a", record.Id, "receipt.png", "image/png");
+        var firstUpload = await CreateUploadUrl(
+            "user-a",
+            record.Id,
+            "policy.pdf",
+            "application/pdf");
+
+        await CompleteUpload(
+            "user-a",
+            record.Id,
+            firstUpload.DocumentId);
+
+        var secondUpload = await CreateUploadUrl(
+            "user-a",
+            record.Id,
+            "receipt.png",
+            "image/png");
+
+        await CompleteUpload(
+            "user-a",
+            record.Id,
+            secondUpload.DocumentId);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, $"/api/records/{record.Id}/documents");
 
@@ -83,8 +102,27 @@ public sealed class DocumentListTests : IClassFixture<RecordKeepApiFactory>
         var userARecord = await CreateRecord("user-a", "Insurance");
         var otherUserARecord = await CreateRecord("user-a", "Warranty");
 
-        await CreateUploadUrl("user-a", userARecord.Id, "insurance.pdf", "application/pdf");
-        await CreateUploadUrl("user-a", otherUserARecord.Id, "warranty.pdf", "application/pdf");
+        var insuranceUpload = await CreateUploadUrl(
+            "user-a",
+            userARecord.Id,
+            "insurance.pdf",
+            "application/pdf");
+
+        await CompleteUpload(
+            "user-a",
+            userARecord.Id,
+            insuranceUpload.DocumentId);
+
+        var warrantyUpload = await CreateUploadUrl(
+            "user-a",
+            otherUserARecord.Id,
+            "warranty.pdf",
+            "application/pdf");
+
+        await CompleteUpload(
+            "user-a",
+            otherUserARecord.Id,
+            warrantyUpload.DocumentId);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, 
             $"/api/records/{userARecord.Id}/documents");
@@ -151,5 +189,19 @@ public sealed class DocumentListTests : IClassFixture<RecordKeepApiFactory>
         var uploadResponse = await response.Content.ReadFromJsonAsync<CreateDocumentUploadUrlResponse>();
 
         return uploadResponse ?? throw new InvalidOperationException("Upload URL response was empty.");
+    }
+
+    private async Task CompleteUpload(
+        string userId,
+        Guid recordId,
+        Guid documentId)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/records/{recordId}/documents/{documentId}/complete");
+
+        request.Headers.Add(TestAuthHandler.UserIdHeader, userId);
+
+        var response = await _client.SendAsync(request);
+
+        response.EnsureSuccessStatusCode();
     }
 }
