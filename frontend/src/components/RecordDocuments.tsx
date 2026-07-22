@@ -61,7 +61,7 @@ export default function RecordDocuments({ recordId, }: RecordDocumentsProps) {
 
     async function handleUpload() {
         if (!selectedFile) {
-            setErrorMessage("Choose a file before uploading.");
+            setErrorMessage("Could not upload document. Check that the file is a PDF, PNG or JPEG under 10 MB.");
             return;
         }
 
@@ -122,7 +122,11 @@ export default function RecordDocuments({ recordId, }: RecordDocumentsProps) {
             <div className="mb-4">
                 <h2 className="text-xl font-semibold">Documents</h2>
                 <p className="mt-1 text-sm text-gray-600">
-                    Attach PDFs or images related to this record.
+                    Attach supporting documents for this record, such as policies, receipts, warranties or licence files.
+                </p>
+
+                <p className="mt-2 text-sm text-gray-500">
+                    Supported files: PDF, PNG, or JPEG. Maximum size: 10 MB.
                 </p>
             </div>
 

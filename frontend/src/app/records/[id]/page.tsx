@@ -39,7 +39,7 @@ export default function RecordDetailsPage() {
 
   if (isLoading) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-10">
+      <main className="mx-auto min-h-screen max-w-4xl px-6 py-10">
         <p className="text-gray-600">Loading record...</p>
       </main>
     );
@@ -47,40 +47,50 @@ export default function RecordDetailsPage() {
 
   if (error || !record) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-10">
-        <p className="text-red-600">
-          {error || "Record not found."}
-        </p>
+      <main className="mx-auto min-h-screen max-w-4xl px-6 py-10">
+        <div className="rounded-lg border border-dashed p-10 text-center">
+          <h1 className="text-lg font-semibold">Unable to load record</h1>
 
-        <Link
-          href="/"
-          className="mt-4 inline-block text-sm underline"
-        >
-          Return to dashboard
-        </Link>
+          <p className="mt-2 text-sm text-red-600">
+            {error || "Record not found."}
+          </p>
+
+          <Link
+            href="/"
+            className="mt-5 inline-block rounded-md border px-4 py-2 text-sm font-medium hover:bg-black hover:text-white"
+          >
+            Return to dashboard
+          </Link>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-3xl px-6 py-10">
+    <main className="mx-auto min-h-screen max-w-4xl px-6 py-10">
       <Link href="/" className="text-sm text-gray-600 hover:underline">
         ← Back to records
       </Link>
 
-      <div className="mt-6 flex items-start justify-between gap-4">
+      <div className="mt-6 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">{record.title}</h1>
+          <p className="text-sm font-medium uppercase tracking-wide text-gray-500">
+            Record details
+          </p>
 
-          {record.provider && (
+          <h1 className="mt-2 text-3xl font-bold">{record.title}</h1>
+
+          {record.provider ? (
             <p className="mt-2 text-gray-600">{record.provider}</p>
+          ) : (
+            <p className="mt-2 text-gray-500">No provider added</p>
           )}
         </div>
 
         <div className="flex gap-3">
           <Link
             href={`/records/${record.id}/edit`}
-            className="rounded-md border px-4 py-2 text-sm font-medium"
+            className="rounded-md border px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
           >
             Edit
           </Link>
@@ -89,36 +99,49 @@ export default function RecordDetailsPage() {
         </div>
       </div>
 
-      <section className="mt-8 space-y-6 rounded-lg border p-6">
-        <Detail label="Description" value={record.description} />
-        <Detail label="Reference number" value={record.referenceNumber} />
+      <section className="mt-8 rounded-lg border p-6">
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold">Record information</h2>
+          <p className="mt-1 text-sm text-gray-600">
+            Key details stored for this record.
+          </p>
+        </div>
 
-        <Detail
-          label="Start date"
-          value={
-            record.startDate
-              ? new Date(record.startDate).toLocaleDateString("en-AU")
-              : null
-          }
-        />
+        <div className="grid gap-6 sm:grid-cols-2">
+          <Detail label="Description" value={record.description} />
 
-        <Detail
-          label="Expiry date"
-          value={
-            record.expiryDate
-              ? new Date(record.expiryDate).toLocaleDateString("en-AU")
-              : null
-          }
-        />
+          <Detail
+            label="Reference number"
+            value={record.referenceNumber}
+          />
 
-        <Detail
-          label="Amount"
-          value={
-            record.amount !== null
-              ? `$${record.amount.toFixed(2)}`
-              : null
-          }
-        />
+          <Detail
+            label="Start date"
+            value={
+              record.startDate
+                ? new Date(record.startDate).toLocaleDateString("en-AU")
+                : null
+            }
+          />
+
+          <Detail
+            label="Expiry date"
+            value={
+              record.expiryDate
+                ? new Date(record.expiryDate).toLocaleDateString("en-AU")
+                : null
+            }
+          />
+
+          <Detail
+            label="Amount"
+            value={
+              record.amount !== null
+                ? `$${record.amount.toFixed(2)}`
+                : null
+            }
+          />
+        </div>
       </section>
 
       <div className="mt-8">
@@ -137,7 +160,10 @@ function Detail({ label, value }: DetailProps) {
   return (
     <div>
       <p className="text-sm font-medium text-gray-500">{label}</p>
-      <p className="mt-1">{value || "Not provided"}</p>
+
+      <p className="mt-1 break-words">
+        {value || <span className="text-gray-400">Not provided</span>}
+      </p>
     </div>
   );
 }
