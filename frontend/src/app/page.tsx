@@ -3,10 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import AuthControls from "@/components/AuthControls";
-import { authenticatedFetch } from "@/lib/authenticated-fetch";
 import type { RecordItem } from "@/types/record";
-
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+import { getRecords } from "@/lib/records";
 
 export default function HomePage() {
   const [records, setRecords] = useState<RecordItem[]>([]);
@@ -17,25 +15,8 @@ export default function HomePage() {
   // can be attached to the API request.
   useEffect(() => {
     async function loadRecords() {
-      if (!apiUrl) {
-        setError("API URL is not configured.");
-        setIsLoading(false);
-        return;
-      }
-
       try {
-        const response = await authenticatedFetch(`${apiUrl}/api/records`);
-
-        if (response.status === 401) {
-          setError("Sign in to view and manage your records.");
-          return;
-        }
-
-        if (!response.ok) {
-          throw new Error(`Request failed: ${response.status}`);
-        }
-
-        const data: RecordItem[] = await response.json();
+        const data = await getRecords();
         setRecords(data);
       } catch {
         setError("Sign in to view and manage your records.");

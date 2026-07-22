@@ -32,9 +32,7 @@ function getApiUrl(): string {
   return apiUrl;
 }
 
-export async function getDocuments(
-  recordId: string,
-): Promise<DocumentItem[]> {
+export async function getDocuments(recordId: string): Promise<DocumentItem[]> {
   const response = await authenticatedFetch(
     `${getApiUrl()}/api/records/${recordId}/documents`,
     {
@@ -84,6 +82,12 @@ export async function uploadDocument(
     throw new Error("Record not found.");
   }
 
+  if (uploadUrlResponse.status === 400) {
+    throw new Error(
+      "Document must be a PDF, PNG or JPEG file under 10 MB.",
+    );
+  }
+
   if (!uploadUrlResponse.ok) {
     throw new Error(
       `Failed to create upload URL: ${uploadUrlResponse.status}`,
@@ -128,8 +132,7 @@ export async function createDocumentDownloadUrl(
     throw new Error(`Failed to create download URL: ${response.status}`);
   }
 
-  const result =
-    (await response.json()) as CreateDownloadUrlResponse;
+  const result = (await response.json()) as CreateDownloadUrlResponse;
 
   return result.downloadUrl;
 }
@@ -158,7 +161,10 @@ export async function deleteDocument(
   }
 }
 
-async function completeDocumentUpload(recordId: string, documentId: string): Promise<void> {
+async function completeDocumentUpload(
+  recordId: string,
+  documentId: string,
+): Promise<void> {
   const response = await authenticatedFetch(
     `${getApiUrl()}/api/records/${recordId}/documents/${documentId}/complete`,
     {
@@ -177,4 +183,4 @@ async function completeDocumentUpload(recordId: string, documentId: string): Pro
   if (!response.ok) {
     throw new Error(`Failed to complete document upload: ${response.status}`);
   }
-};
+}
