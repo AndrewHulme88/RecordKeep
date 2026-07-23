@@ -26,12 +26,29 @@ if (!builder.Environment.IsEnvironment("Testing"))
 }
 
 // Allow the local Next.js frontend to call the API during development
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? [];
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
+        if (builder.Environment.IsEnvironment("Testing"))
+        {
+            policy
+                .AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+
+            return;
+        }
+
+        if (allowedOrigins.Length == 0)
+        {
+            throw new InvalidOperationException("Allowed origins are not configured.");
+        }
+
         policy
-            .WithOrigins("http://localhost:3000")
+            .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
