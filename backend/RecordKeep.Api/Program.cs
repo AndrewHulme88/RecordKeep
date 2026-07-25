@@ -170,6 +170,13 @@ if (!app.Environment.IsEnvironment("Testing"))
     app.UseHttpsRedirection();
 }
 
+app.MapGet("/", () => Results.Ok("RecordKeep API is running."));
+
+app.MapGet("/health", () => Results.Ok(new
+{
+    status = "ok"
+}));
+
 app.MapRecordEndpoints();
 app.MapDocumentEndpoints();
 app.Run();
