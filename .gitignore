@@ -17,3 +17,4 @@ tests/
 appsettings.Development.json
 
 backend/publish/
+.vercel
