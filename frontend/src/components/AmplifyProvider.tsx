@@ -1,7 +1,7 @@
 "use client";
 
-import "aws-amplify/auth/enable-oauth-listener";
 import "@/lib/amplify-config";
+import "aws-amplify/auth/enable-oauth-listener";
 
 export function AmplifyProvider({
   children,
