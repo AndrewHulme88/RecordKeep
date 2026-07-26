@@ -1,63 +1,45 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { getCurrentUser } from "aws-amplify/auth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
-  const [error, setError] = useState("");
 
   useEffect(() => {
-    let attempts = 0;
-    const maximumAttempts = 20;
+    let isMounted = true;
 
-    // Amplify may need a moment to exchange the Cognito
-    // authorisation code and make the authenticated session available
-    const interval = window.setInterval(async () => {
-      attempts++;
+    async function finishSignIn() {
+      for (let attempt = 0; attempt < 10; attempt += 1) {
+        try {
+          await getCurrentUser();
 
-      try {
-        await getCurrentUser();
+          if (isMounted) {
+            router.replace("/");
+          }
 
-        // Stop polling once the session is available and return the 
-        // user to the dashboard
-        window.clearInterval(interval);
-
-        router.replace("/");
-        router.refresh();
-      } catch {
-        // Stop retrying after five seconds and let the user continue manually
-        if (attempts >= maximumAttempts) {
-          window.clearInterval(interval);
-          setError("Sign-in completed, but the redirect could not finish.");
+          return;
+        } catch {
+          await new Promise((resolve) => setTimeout(resolve, 300));
         }
       }
-    }, 250);
 
-    // Prevent the interval from continuing if the component unmounts
-    return () => window.clearInterval(interval);
+      if (isMounted) {
+        router.replace("/");
+      }
+    }
+
+    finishSignIn();
+
+    return () => {
+      isMounted = false;
+    };
   }, [router]);
 
   return (
     <main className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        {error ? (
-          <>
-            <p className="text-red-600">{error}</p>
-
-            <button
-              type="button"
-              onClick={() => router.replace("/")}
-              className="mt-4 rounded-md bg-black px-4 py-2 text-sm font-medium text-white"
-            >
-              Continue to RecordKeep
-            </button>
-          </>
-        ) : (
-          <p className="text-gray-600">Signing you in...</p>
-        )}
-      </div>
+      <p>Finishing sign in...</p>
     </main>
   );
 }
