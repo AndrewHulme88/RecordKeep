@@ -51,25 +51,6 @@ export default function HomePage() {
         <AuthControls />
       </header>
 
-      <button
-  type="button"
-  onClick={async () => {
-    try {
-      const user = await getCurrentUser();
-      const session = await fetchAuthSession();
-
-      console.log("Current user:", user);
-      console.log("Auth session:", session);
-      console.log("ID token:", session.tokens?.idToken?.toString());
-      console.log("Access token:", session.tokens?.accessToken?.toString());
-    } catch (error) {
-      console.error("Auth debug failed:", error);
-    }
-  }}
->
-  Debug auth
-</button>
-
       <section>
         <div className="mb-4 flex items-center justify-between gap-4">
           <div>
