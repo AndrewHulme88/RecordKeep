@@ -9,4 +9,5 @@ public sealed class CreateRecordRequest
     public DateOnly? StartDate { get; set; }
     public DateOnly? ExpiryDate { get; set; }
     public decimal? Amount { get; set; }
+    public string? Category { get; set; }
 }

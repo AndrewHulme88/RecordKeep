@@ -16,4 +16,5 @@ public class Record
     public DateTime CreatedAtUtc { get; set; }
     public DateTime UpdatedAtUtc { get; set; }
     public ICollection<RecordDocument> Documents { get; set; } = new List<RecordDocument>();
+    public string? Category { get; set; }
 }

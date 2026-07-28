@@ -70,7 +70,8 @@ public static class RecordEndpoints
             ExpiryDate = request.ExpiryDate,
             Amount = request.Amount,
             CreatedAtUtc = DateTime.UtcNow,
-            UpdatedAtUtc = DateTime.UtcNow
+            UpdatedAtUtc = DateTime.UtcNow,
+            Category = request.Category?.Trim()
         };
 
         dbContext.Records.Add(record);
@@ -169,6 +170,7 @@ public static class RecordEndpoints
         record.ExpiryDate = request.ExpiryDate;
         record.Amount = request.Amount;
         record.UpdatedAtUtc = DateTime.UtcNow;
+        record.Category = request.Category?.Trim();
 
         await dbContext.SaveChangesAsync();
 
