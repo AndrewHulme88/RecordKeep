@@ -17,10 +17,10 @@ export default function HomePage() {
   useEffect(() => {
     async function loadRecords() {
       try {
-        const data = await getRecords();
-        setRecords(data);
+        const records = await getRecords();
+        setRecords(records);
       } catch {
-        setError("Sign in to view and manage your records.");
+        setError("Could not load your records. Please refresh the page and try again.");
       } finally {
         setIsLoading(false);
       }
@@ -28,6 +28,29 @@ export default function HomePage() {
 
     loadRecords();
   }, []);
+
+  if (isLoading) {
+    return <p>Loading recordds...</p>;
+  }
+
+  if (error) {
+    return (
+      <div>
+        <p>{error}</p>
+        <button onClick={() => window.location.reload()}>Refresh</button>
+      </div>
+    );
+  }
+
+  if (records.length === 0) {
+    return (
+      <div>
+        <h2>No records yet</h2>
+        <p>Add your first warranty, licence, policy, or document.</p>
+        <Link href="/records/new">Create your first record</Link>
+      </div>
+    );
+  }
 
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-6 py-10">
