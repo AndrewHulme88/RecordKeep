@@ -17,8 +17,8 @@ export default function HomePage() {
   useEffect(() => {
     async function loadRecords() {
       try {
-        const records = await getRecords();
-        setRecords(records);
+        const data = await getRecords();
+        setRecords(data);
       } catch {
         setError("Could not load your records. Please refresh the page and try again.");
       } finally {
