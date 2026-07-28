@@ -29,29 +29,6 @@ export default function HomePage() {
     loadRecords();
   }, []);
 
-  if (isLoading) {
-    return <p>Loading recordds...</p>;
-  }
-
-  if (error) {
-    return (
-      <div>
-        <p>{error}</p>
-        <button onClick={() => window.location.reload()}>Refresh</button>
-      </div>
-    );
-  }
-
-  if (records.length === 0) {
-    return (
-      <div>
-        <h2>No records yet</h2>
-        <p>Add your first warranty, licence, policy, or document.</p>
-        <Link href="/records/new">Create your first record</Link>
-      </div>
-    );
-  }
-
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-6 py-10">
       <header className="mb-10 flex items-start justify-between gap-6">
