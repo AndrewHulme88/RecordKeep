@@ -12,7 +12,7 @@ public sealed class RecordConfiguration : IEntityTypeConfiguration<RecordEntity>
         builder.HasKey(record => record.Id);
         builder.Property(record => record.UserId).IsRequired().HasMaxLength(100);
         builder.Property(record => record.Title).IsRequired().HasMaxLength(200);
-        builder.Property(record => record.Category).IsRequired().HasDefaultValue("Other");
+        builder.Property(record => record.Category).IsRequired();
         builder.Property(record => record.Provider).HasMaxLength(200);
         builder.Property(record => record.Description).HasMaxLength(2000);
         builder.Property(record => record.ReferenceNumber).HasMaxLength(100);
