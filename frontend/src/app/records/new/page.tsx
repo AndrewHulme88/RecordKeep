@@ -3,11 +3,13 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createRecord } from "@/lib/records";
+import { DEFAULT_RECORD_CATEGORY, RECORD_CATEGORIES, RecordCategory } from "@/lib/record-categories";
 
 export default function NewRecordPage() {
   const router = useRouter();
 
   const [title, setTitle] = useState("");
+  const [category, setCategory] = useState<RecordCategory>(DEFAULT_RECORD_CATEGORY);
   const [provider, setProvider] = useState("");
   const [description, setDescription] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
@@ -32,6 +34,7 @@ export default function NewRecordPage() {
     try {
       await createRecord({
         title: title.trim(),
+        category,
         provider: provider.trim() || undefined,
         description: description.trim() || undefined,
         referenceNumber: referenceNumber.trim() || undefined,
@@ -91,6 +94,29 @@ export default function NewRecordPage() {
 
             <p className="mt-1 text-xs text-gray-500">
               A short name that makes this record easy to recognise.
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="category" className="block text-sm font-medium">
+              Category
+            </label>
+
+            <select
+              id="category"
+              value={category}
+              onChange={(event) => setCategory(event.target.value as RecordCategory)}
+              className="mt-2 w-full rounded-md border bg-white px-3 py-2 text-black outline-none transition focus:border-black"
+            >
+              {RECORD_CATEGORIES.map((categoryOption) => (
+                <option key={categoryOption} value={categoryOption}>
+                  {categoryOption}
+                </option>
+              ))}
+            </select>
+
+            <p className="mt-1 text-xs text-gray-500">
+              Choose the type of record you are saving.
             </p>
           </div>
 
@@ -197,7 +223,6 @@ export default function NewRecordPage() {
             </p>
           </div>
         </div>
-
         {error && (
           <div className="mt-6 rounded-md border border-red-200 bg-red-50 px-4 py-3">
             <p className="text-sm text-red-700">{error}</p>
