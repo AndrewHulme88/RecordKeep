@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { RecordItem } from "@/types/record";
 import { updateRecord } from "@/lib/records";
+import { DEFAULT_RECORD_CATEGORY, RECORD_CATEGORIES, RecordCategory } from "@/lib/record-categories";
 
 type EditRecordFormProps = {
   record: RecordItem;
@@ -13,11 +14,13 @@ export default function EditRecordForm({ record }: EditRecordFormProps) {
   const router = useRouter();
 
   const [title, setTitle] = useState(record.title);
+  const initialCategory = RECORD_CATEGORIES.includes(record.category as RecordCategory)
+    ? (record.category as RecordCategory) : DEFAULT_RECORD_CATEGORY;
+
+  const [category, setCategory] = useState<RecordCategory>(initialCategory);
   const [provider, setProvider] = useState(record.provider ?? "");
   const [description, setDescription] = useState(record.description ?? "");
-  const [referenceNumber, setReferenceNumber] = useState(
-    record.referenceNumber ?? "",
-  );
+  const [referenceNumber, setReferenceNumber] = useState(record.referenceNumber ?? "");
   const [startDate, setStartDate] = useState(record.startDate ?? "");
   const [expiryDate, setExpiryDate] = useState(record.expiryDate ?? "");
   const [amount, setAmount] = useState(record.amount?.toString() ?? "");
@@ -39,6 +42,7 @@ export default function EditRecordForm({ record }: EditRecordFormProps) {
     try {
       await updateRecord(record.id, {
         title: title.trim(),
+        category,
         provider: provider.trim() || undefined,
         description: description.trim() || undefined,
         referenceNumber: referenceNumber.trim() || undefined,
@@ -97,6 +101,29 @@ export default function EditRecordForm({ record }: EditRecordFormProps) {
 
             <p className="mt-1 text-xs text-gray-500">
               A short name that makes this record easy to recognise.
+            </p>
+          </div>
+
+          <div>
+            <label htmlFor="category" className="block text-sm font-medium">
+              Category
+            </label>
+
+            <select
+              id="category"
+              value={category}
+              onChange={(event) => setCategory(event.target.value as RecordCategory)}
+              className="mt-2 w-full rounded-md border bg-white px-3 py-2 text-black outline-none transition focus:border-black"
+            >
+              {RECORD_CATEGORIES.map((categoryOption) => (
+                <option key={categoryOption} value={categoryOption}>
+                  {categoryOption}
+                </option>
+              ))}
+            </select>
+
+            <p className="mt-1 text-xs text-gray-500">
+              Choose the type of record you are saving.
             </p>
           </div>
 

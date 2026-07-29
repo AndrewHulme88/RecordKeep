@@ -63,6 +63,7 @@ public static class RecordEndpoints
             Id = Guid.NewGuid(),
             UserId = userId,
             Title = request.Title.Trim(),
+            Category = string.IsNullOrWhiteSpace(request.Category) ? "Other" : request.Category.Trim(),
             Provider = request.Provider?.Trim(),
             Description = request.Description?.Trim(),
             ReferenceNumber = request.ReferenceNumber?.Trim(),
@@ -71,7 +72,6 @@ public static class RecordEndpoints
             Amount = request.Amount,
             CreatedAtUtc = DateTime.UtcNow,
             UpdatedAtUtc = DateTime.UtcNow,
-            Category = request.Category?.Trim()
         };
 
         dbContext.Records.Add(record);
@@ -163,6 +163,7 @@ public static class RecordEndpoints
         }
 
         record.Title = request.Title.Trim();
+        record.Category = string.IsNullOrWhiteSpace(request.Category) ? "Other" : request.Category.Trim();
         record.Provider = request.Provider?.Trim();
         record.Description = request.Description?.Trim();
         record.ReferenceNumber = request.ReferenceNumber?.Trim();
@@ -170,7 +171,6 @@ public static class RecordEndpoints
         record.ExpiryDate = request.ExpiryDate;
         record.Amount = request.Amount;
         record.UpdatedAtUtc = DateTime.UtcNow;
-        record.Category = request.Category?.Trim();
 
         await dbContext.SaveChangesAsync();
 

@@ -1,18 +1,18 @@
 import type { RecordItem } from "@/types/record";
 import { authenticatedFetch } from "./authenticated-fetch";
-import { RecordCategory } from "./record-categories";
+import type { RecordCategory } from "./record-categories";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export type CreateRecordInput = {
   title: string;
+  category: RecordCategory;
   provider?: string;
   description?: string;
   referenceNumber?: string;
   startDate?: string;
   expiryDate?: string;
   amount?: number;
-  category: RecordCategory;
 };
 
 export type UpdateRecordInput = CreateRecordInput;

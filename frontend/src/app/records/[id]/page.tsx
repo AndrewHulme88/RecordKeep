@@ -108,6 +108,8 @@ export default function RecordDetailsPage() {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
+          <Detail label="Category" value={record.category} />
+
           <Detail label="Description" value={record.description} />
 
           <Detail

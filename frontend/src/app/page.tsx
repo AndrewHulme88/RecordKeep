@@ -5,7 +5,6 @@ import Link from "next/link";
 import AuthControls from "@/components/AuthControls";
 import type { RecordItem } from "@/types/record";
 import { getRecords } from "@/lib/records";
-import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
 
 export default function HomePage() {
   const [records, setRecords] = useState<RecordItem[]>([]);
@@ -109,6 +108,12 @@ export default function HomePage() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h3 className="text-lg font-semibold">{record.title}</h3>
+
+                    {record.category && (
+                      <p className="mt-1 text-sm text-gray-600">
+                        {record.category}
+                      </p>
+                    )}
 
                     {record.provider && (
                       <p className="mt-1 text-sm text-gray-600">
