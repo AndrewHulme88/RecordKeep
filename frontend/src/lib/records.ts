@@ -27,8 +27,19 @@ function getApiUrl(): string {
 
 // Centralise record API calls here so authentication and error handling
 // remain consistent across the frontend.
-export async function getRecords(): Promise<RecordItem[]> {
-  const response = await authenticatedFetch(`${getApiUrl()}/api/records`, {
+export async function getRecords(options?: {
+  category?: RecordCategory;
+}): Promise<RecordItem[]> {
+  const params = new URLSearchParams();
+
+  if (options?.category) {
+    params.set("category", options.category);
+  }
+
+  const query = params.toString();
+  const url = `${getApiUrl()}/api/records${query ? `?${query}` : ""}`;
+
+  const response = await authenticatedFetch(url, {
     cache: "no-store",
   });
 

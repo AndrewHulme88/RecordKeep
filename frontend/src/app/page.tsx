@@ -5,9 +5,11 @@ import Link from "next/link";
 import AuthControls from "@/components/AuthControls";
 import type { RecordItem } from "@/types/record";
 import { getRecords } from "@/lib/records";
+import { RECORD_CATEGORIES, type RecordCategory } from "@/lib/record-categories";
 
 export default function HomePage() {
   const [records, setRecords] = useState<RecordItem[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<"" | RecordCategory>("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -15,8 +17,13 @@ export default function HomePage() {
   // can be attached to the API request.
   useEffect(() => {
     async function loadRecords() {
+      setIsLoading(true);
+      setError("");
+
       try {
-        const data = await getRecords();
+        const data = await getRecords(
+          selectedCategory ? { category: selectedCategory } : undefined,
+        );
         setRecords(data);
       } catch {
         setError("Could not load your records. Please refresh the page and try again.");
@@ -26,7 +33,7 @@ export default function HomePage() {
     }
 
     loadRecords();
-  }, []);
+  }, [selectedCategory]);
 
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-6 py-10">
@@ -51,7 +58,7 @@ export default function HomePage() {
       </header>
 
       <section>
-        <div className="mb-4 flex items-center justify-between gap-4">
+        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-xl font-semibold">Your records</h2>
             <p className="mt-1 text-sm text-gray-600">
@@ -59,12 +66,33 @@ export default function HomePage() {
             </p>
           </div>
 
-          <Link
-            href="/records/new"
-            className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
-          >
-            Add Record
-          </Link>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <label htmlFor="category-filter" className="sr-only">
+              Filter by category
+            </label>
+            <select
+              id="category-filter"
+              value={selectedCategory}
+              onChange={(event) =>
+                setSelectedCategory(event.target.value as "" | RecordCategory)
+              }
+              className="rounded-md border bg-white px-3 py-2 text-sm text-black outline-none transition focus:border-black"
+            >
+              <option value="">All categories</option>
+              {RECORD_CATEGORIES.map((categoryOption) => (
+                <option key={categoryOption} value={categoryOption}>
+                  {categoryOption}
+                </option>
+              ))}
+            </select>
+
+            <Link
+              href="/records/new"
+              className="rounded-md bg-black px-4 py-2 text-center text-sm font-medium text-white transition hover:bg-gray-800"
+            >
+              Add Record
+            </Link>
+          </div>
         </div>
 
         {isLoading ? (
@@ -82,21 +110,40 @@ export default function HomePage() {
             </p>
           </div>
         ) : records.length === 0 ? (
-          <div className="rounded-lg border border-dashed p-10 text-center">
-            <h3 className="text-lg font-semibold">No records yet</h3>
+          selectedCategory ? (
+            <div className="rounded-lg border border-dashed p-10 text-center">
+              <h3 className="text-lg font-semibold">No records in this category</h3>
 
-            <p className="mx-auto mt-2 max-w-md text-sm text-gray-600">
-              Create your first record to start tracking an insurance policy,
-              warranty, licence, subscription or other important document.
-            </p>
+              <p className="mx-auto mt-2 max-w-md text-sm text-gray-600">
+                There are no {selectedCategory.toLowerCase()} records yet. Try
+                another category or add a new record.
+              </p>
 
-            <Link
-              href="/records/new"
-              className="mt-5 inline-block rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
-            >
-              Create your first record
-            </Link>
-          </div>
+              <button
+                type="button"
+                onClick={() => setSelectedCategory("")}
+                className="mt-5 inline-block rounded-md border px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+              >
+                Show all categories
+              </button>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed p-10 text-center">
+              <h3 className="text-lg font-semibold">No records yet</h3>
+
+              <p className="mx-auto mt-2 max-w-md text-sm text-gray-600">
+                Create your first record to start tracking an insurance policy,
+                warranty, licence, subscription or other important document.
+              </p>
+
+              <Link
+                href="/records/new"
+                className="mt-5 inline-block rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800"
+              >
+                Create your first record
+              </Link>
+            </div>
+          )
         ) : (
           <div className="space-y-4">
             {records.map((record) => (

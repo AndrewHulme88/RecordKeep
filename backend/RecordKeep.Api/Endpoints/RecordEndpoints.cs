@@ -82,7 +82,8 @@ public static class RecordEndpoints
 
     private static async Task<IResult> GetRecords(
         ClaimsPrincipal user,
-        ApplicationDbContext dbContext)
+        ApplicationDbContext dbContext,
+        string? category = null)
     {
         var userId = GetUserId(user);
 
@@ -91,9 +92,17 @@ public static class RecordEndpoints
             return Results.Unauthorized();
         }
 
-        var records = await dbContext.Records
+        var query = dbContext.Records
             .AsNoTracking()
-            .Where(record => record.UserId == userId)
+            .Where(record => record.UserId == userId);
+
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            var trimmedCategory = category.Trim();
+            query = query.Where(record => record.Category == trimmedCategory);
+        }
+
+        var records = await query
             .OrderBy(record => record.ExpiryDate)
             .ThenBy(record => record.Title)
             .ToListAsync();
