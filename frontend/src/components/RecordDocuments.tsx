@@ -118,14 +118,14 @@ export default function RecordDocuments({ recordId, }: RecordDocumentsProps) {
     }
 
     return (
-        <section className="rounded-lg border p-6">
+        <section className="border-t border-[var(--line)] pt-8">
             <div className="mb-4">
-                <h2 className="text-xl font-semibold">Documents</h2>
-                <p className="mt-1 text-sm text-gray-600">
+                <h2 className="section-title">Documents</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
                     Attach supporting documents for this record, such as policies, receipts, warranties or licence files.
                 </p>
 
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-xs text-[var(--muted)]">
                     Supported files: PDF, PNG, or JPEG. Maximum size: 10 MB.
                 </p>
             </div>
@@ -136,21 +136,21 @@ export default function RecordDocuments({ recordId, }: RecordDocumentsProps) {
                     type="file"
                     accept="application/pdf,image/jpeg,image/png"
                     onChange={handleFileChange}
-                    className="text-sm"
+                    className="text-sm text-[var(--muted)] file:mr-4 file:rounded-full file:border-0 file:bg-[var(--surface)] file:px-4 file:py-2 file:text-xs file:font-bold file:text-[var(--accent)]"
                 />
 
                 <button
                     type="button"
                     onClick={handleUpload}
                     disabled={!selectedFile || isUploading}
-                    className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+                    className="button-primary"
                 >
                     {isUploading ? "Uploading..." : "Upload"}
                 </button>
             </div>
 
             {selectedFile && (
-                <p className="mb-4 text-gray-600">
+                <p className="mb-4 text-sm text-[var(--muted)]">
                     Selected: {selectedFile.name}
                 </p>
             )}
@@ -166,15 +166,15 @@ export default function RecordDocuments({ recordId, }: RecordDocumentsProps) {
                     No documents have been attached yet.
                 </p>
             ) : (
-                <ul className="divide-y">
+                <ul className="divide-y divide-[var(--line)]">
                     {documents.map((document) => (
                         <li
                             key={document.id}
                             className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
                         >
                             <div>
-                                <p className="font-medium">{document.originalFileName}</p>
-                                <p className="text-sm text-gray-600">
+                                <p className="font-serif text-lg">{document.originalFileName}</p>
+                                <p className="mt-1 text-xs text-[var(--muted)]">
                                     {formatFileSize(document.sizeBytes)} -{" "}
                                     {formatDate(document.createdAtUtc)}
                                 </p>
@@ -184,7 +184,7 @@ export default function RecordDocuments({ recordId, }: RecordDocumentsProps) {
                                 <button
                                     type="button"
                                     onClick={() => handleDownload(document.id)}
-                                    className="rounded-md border px-3 py-2 text-sm font-medium"
+                                    className="button-secondary"
                                 >
                                     Open
                                 </button>
@@ -193,7 +193,7 @@ export default function RecordDocuments({ recordId, }: RecordDocumentsProps) {
                                     type="button"
                                     onClick={() => handleDelete(document.id)}
                                     disabled={deletingDocumentId === document.id}
-                                    className="rounded-md border px-3 py-2 text-sm font-medium text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="button-danger"
                                 >
                                     {deletingDocumentId === document.id ? "Deleting..." : "Delete"}
                                 </button>

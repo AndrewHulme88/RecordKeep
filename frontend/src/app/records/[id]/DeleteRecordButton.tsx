@@ -44,7 +44,7 @@ export default function DeleteRecordButton({
             type="button"
             onClick={handleDelete}
             disabled={isDeleting}
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className="button-danger"
           >
             {isDeleting ? "Deleting..." : "Confirm delete"}
           </button>
@@ -53,7 +53,7 @@ export default function DeleteRecordButton({
             type="button"
             onClick={() => setIsConfirming(false)}
             disabled={isDeleting}
-            className="rounded-md border px-4 py-2 text-sm font-medium"
+            className="button-secondary"
           >
             Cancel
           </button>
@@ -68,7 +68,7 @@ export default function DeleteRecordButton({
     <button
       type="button"
       onClick={() => setIsConfirming(true)}
-      className="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+      className="button-danger"
     >
       Delete
     </button>

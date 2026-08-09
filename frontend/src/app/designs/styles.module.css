@@ -1,0 +1,342 @@
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Bodoni+Moda:opsz,wght@6..96,400;6..96,500&family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Hanken+Grotesk:wght@400;500;600&family=Karla:wght@400;500;600&family=Lora:wght@400;500&display=swap");
+
+.comparisonPage {
+  --study-sans: "Archivo", "Franklin Gothic Medium", sans-serif;
+  margin: 0 auto;
+  max-width: 1260px;
+  min-height: 100vh;
+  padding: 42px 32px 70px;
+}
+
+.intro {
+  align-items: end;
+  display: grid;
+  gap: 50px;
+  grid-template-columns: minmax(150px, .4fr) 1fr;
+  margin-bottom: 42px;
+}
+
+.intro h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  font-weight: 400;
+  letter-spacing: -.055em;
+  line-height: 1;
+  margin: 12px 0 16px;
+}
+
+.intro > div > p:last-child {
+  color: #68736c;
+  line-height: 1.65;
+  margin: 0;
+  max-width: 670px;
+}
+
+.backLink {
+  border-bottom: 1px solid currentColor;
+  color: #68736c;
+  font-size: .78rem;
+  font-weight: 700;
+  justify-self: start;
+  padding-bottom: 4px;
+  text-decoration: none;
+}
+
+.kicker {
+  color: #68736c;
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.themePicker {
+  display: flex;
+  gap: clamp(20px, 5vw, 54px);
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+
+.fontPicker {
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(3, 1fr);
+  margin-bottom: 20px;
+}
+
+.fontPicker button {
+  background: rgb(255 255 255 / 34%);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: #68706a;
+  cursor: pointer;
+  display: grid;
+  min-height: 82px;
+  padding: 15px 17px 13px;
+  text-align: left;
+}
+
+.fontPicker button[aria-pressed="true"] {
+  background: rgb(255 255 255 / 68%);
+  border-color: #252b27;
+  color: #252b27;
+}
+
+.fontNumber {
+  font: 700 .62rem/1 "Archivo", "Franklin Gothic Medium", sans-serif;
+  letter-spacing: .12em;
+  margin-bottom: 8px;
+}
+
+.fontChoiceName {
+  font-size: .95rem;
+  font-weight: 600;
+}
+
+.fontNote {
+  font-size: .68rem;
+  margin-top: 3px;
+  opacity: .72;
+}
+
+.themePicker button {
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: #6e746f;
+  cursor: pointer;
+  font: 700 .73rem/1.2 "Avenir Next", "Century Gothic", sans-serif;
+  letter-spacing: .06em;
+  padding: 9px 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.themePicker button span {
+  color: #a0a39f;
+  margin-right: 8px;
+}
+
+.themePicker button[aria-pressed="true"] {
+  border-color: #252b27;
+  color: #252b27;
+}
+
+.preview {
+  --preview-paper: #f7f1e7;
+  --preview-ink: #29231e;
+  --preview-muted: #746a61;
+  --preview-line: #d9cfc1;
+  --preview-accent: #d35d25;
+  --preview-wash: rgb(224 129 71 / 14%);
+  background: var(--preview-paper);
+  color: var(--preview-ink);
+  min-height: 670px;
+  overflow: hidden;
+  padding: 27px clamp(24px, 5vw, 64px) 56px;
+  position: relative;
+  transition: background 220ms ease, color 220ms ease;
+}
+
+.preview[data-theme="mist"] {
+  --preview-paper: #c8cfcd;
+  --preview-ink: #1c2928;
+  --preview-muted: #52605e;
+  --preview-line: #aeb8b5;
+  --preview-accent: #263e3b;
+  --preview-wash: rgb(255 255 255 / 35%);
+}
+
+.preview[data-font="archivo-bodoni"] {
+  --preview-body-font: "Archivo", "Franklin Gothic Medium", sans-serif;
+  --preview-display-font: "Bodoni Moda", Didot, serif;
+}
+
+.preview[data-font="hanken-lora"] {
+  --preview-body-font: "Hanken Grotesk", "Gill Sans", sans-serif;
+  --preview-display-font: "Lora", Baskerville, serif;
+}
+
+.preview[data-font="karla-fraunces"] {
+  --preview-body-font: "Karla", "Gill Sans", sans-serif;
+  --preview-display-font: "Fraunces", "Book Antiqua", serif;
+}
+
+.preview {
+  font-family: var(--preview-body-font);
+}
+
+.wash {
+  background: var(--preview-wash);
+  border-radius: 50%;
+  filter: blur(3px);
+  height: 500px;
+  pointer-events: none;
+  position: absolute;
+  right: -120px;
+  top: -280px;
+  width: 600px;
+}
+
+.previewNav {
+  align-items: center;
+  border-bottom: 1px solid var(--preview-line);
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 20px;
+  position: relative;
+}
+
+.brand {
+  font-family: var(--preview-display-font);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+
+.tagline {
+  color: var(--preview-muted);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.hero {
+  display: grid;
+  gap: 30px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 66px 0 78px;
+  position: relative;
+}
+
+.eyebrow {
+  color: var(--preview-accent);
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.hero h2 {
+  font-family: var(--preview-display-font);
+  font-size: clamp(3.3rem, 7vw, 5.5rem);
+  font-weight: 400;
+  line-height: .94;
+  letter-spacing: -.06em;
+  margin: 18px 0 22px;
+  max-width: 780px;
+}
+
+.description {
+  color: var(--preview-muted);
+  line-height: 1.7;
+  margin: 0;
+  max-width: 600px;
+}
+
+.primaryButton {
+  align-self: start;
+  background: var(--preview-accent);
+  border: 0;
+  border-radius: 999px;
+  color: white;
+  display: inline-flex;
+  font-size: .76rem;
+  font-weight: 800;
+  justify-content: center;
+  padding: 12px 18px;
+}
+
+.recordsHeading {
+  align-items: end;
+  border-bottom: 1px solid var(--preview-line);
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 18px;
+  position: relative;
+}
+
+.recordsHeading h3 {
+  font-family: var(--preview-display-font);
+  font-size: 1.65rem;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -.035em;
+  margin: 0 0 5px;
+}
+
+.recordsHeading p {
+  color: var(--preview-muted);
+  font-size: .78rem;
+  margin: 0;
+}
+
+.actions {
+  align-items: end;
+  display: flex;
+  gap: 22px;
+}
+
+.select {
+  border-bottom: 1px solid var(--preview-muted);
+  font-size: .76rem;
+  min-width: 135px;
+  padding: 9px 1px;
+}
+
+.emptyState {
+  padding: 52px 10px 20px;
+  text-align: center;
+}
+
+.emptyState strong {
+  display: block;
+  font-family: var(--preview-display-font);
+  font-size: 1.45rem;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -.03em;
+}
+
+.emptyState span {
+  color: var(--preview-muted);
+  display: block;
+  font-size: .78rem;
+  margin-top: 9px;
+}
+
+.palette {
+  bottom: 22px;
+  display: flex;
+  gap: 8px;
+  left: clamp(24px, 5vw, 64px);
+  position: absolute;
+}
+
+.palette span {
+  border: 1px solid rgb(0 0 0 / 14%);
+  height: 17px;
+  width: 17px;
+}
+
+.paperSwatch { background: var(--preview-paper); }
+.inkSwatch { background: var(--preview-ink); }
+.mutedSwatch { background: var(--preview-muted); }
+.accentSwatch { background: var(--preview-accent); }
+
+@media (max-width: 680px) {
+  .comparisonPage { padding: 28px 14px 50px; }
+  .intro { align-items: start; gap: 32px; grid-template-columns: 1fr; }
+  .fontPicker { grid-template-columns: 1fr; }
+  .fontPicker button { min-height: 68px; }
+  .preview { min-height: 720px; }
+  .tagline { display: none; }
+  .hero { grid-template-columns: 1fr; padding: 50px 0 58px; }
+  .hero .primaryButton { position: absolute; right: 0; top: 42px; }
+  .recordsHeading { align-items: start; flex-direction: column; gap: 22px; }
+  .actions { justify-content: space-between; width: 100%; }
+}

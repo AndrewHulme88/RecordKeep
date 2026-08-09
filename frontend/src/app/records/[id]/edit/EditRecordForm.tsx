@@ -61,32 +61,32 @@ export default function EditRecordForm({ record }: EditRecordFormProps) {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-3xl px-6 py-10">
+    <main className="page-shell page-shell--narrow !pt-12">
       <button
         type="button"
         onClick={() => router.push(`/records/${record.id}`)}
-        className="text-sm text-gray-600 hover:underline"
+        className="text-action back-link"
       >
-        ← Back to record
+        Back to record
       </button>
 
       <div className="mt-6">
-        <p className="text-sm font-medium uppercase tracking-wide text-gray-500">
+        <p className="eyebrow">
           Edit record
         </p>
 
-        <h1 className="mt-2 text-3xl font-bold">{record.title}</h1>
+        <h1 className="page-title mt-4 !font-bold">{record.title}</h1>
 
-        <p className="mt-3 max-w-2xl text-gray-600">
+        <p className="lede mt-4">
           Update the key details for this record. Documents attached to this
           record are managed from the record details page.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-8 rounded-lg border p-6">
+      <form onSubmit={handleSubmit} className="form-sheet">
         <div className="space-y-6">
           <div>
-            <label htmlFor="title" className="block text-sm font-medium">
+            <label htmlFor="title" className="field-label">
               Title <span className="text-red-600">*</span>
             </label>
 
@@ -95,17 +95,17 @@ export default function EditRecordForm({ record }: EditRecordFormProps) {
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Car insurance, laptop warranty, driver licence..."
-              className="mt-2 w-full rounded-md border bg-white px-3 py-2 text-black outline-none transition focus:border-black"
+              className="field mt-2"
               required
             />
 
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="field-help">
               A short name that makes this record easy to recognise.
             </p>
           </div>
 
           <div>
-            <label htmlFor="category" className="block text-sm font-medium">
+            <label htmlFor="category" className="field-label">
               Category
             </label>
 
@@ -113,7 +113,7 @@ export default function EditRecordForm({ record }: EditRecordFormProps) {
               id="category"
               value={category}
               onChange={(event) => setCategory(event.target.value as RecordCategory)}
-              className="mt-2 w-full rounded-md border bg-white px-3 py-2 text-black outline-none transition focus:border-black"
+              className="field mt-2"
             >
               {RECORD_CATEGORIES.map((categoryOption) => (
                 <option key={categoryOption} value={categoryOption}>
@@ -122,13 +122,13 @@ export default function EditRecordForm({ record }: EditRecordFormProps) {
               ))}
             </select>
 
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="field-help">
               Choose the type of record you are saving.
             </p>
           </div>
 
           <div>
-            <label htmlFor="provider" className="block text-sm font-medium">
+            <label htmlFor="provider" className="field-label">
               Provider
             </label>
 
@@ -137,14 +137,14 @@ export default function EditRecordForm({ record }: EditRecordFormProps) {
               value={provider}
               onChange={(event) => setProvider(event.target.value)}
               placeholder="AAMI, Apple, VicRoads..."
-              className="mt-2 w-full rounded-md border bg-white px-3 py-2 text-black outline-none transition focus:border-black"
+              className="field mt-2"
             />
           </div>
 
           <div>
             <label
               htmlFor="description"
-              className="block text-sm font-medium"
+              className="field-label"
             >
               Description
             </label>
@@ -154,14 +154,14 @@ export default function EditRecordForm({ record }: EditRecordFormProps) {
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Add any notes that would help you understand this record later."
-              className="mt-2 min-h-28 w-full rounded-md border bg-white px-3 py-2 text-black outline-none transition focus:border-black"
+              className="field mt-2 min-h-28 resize-y"
             />
           </div>
 
           <div>
             <label
               htmlFor="referenceNumber"
-              className="block text-sm font-medium"
+              className="field-label"
             >
               Reference number
             </label>
@@ -171,7 +171,7 @@ export default function EditRecordForm({ record }: EditRecordFormProps) {
               value={referenceNumber}
               onChange={(event) => setReferenceNumber(event.target.value)}
               placeholder="Policy number, account number, licence number..."
-              className="mt-2 w-full rounded-md border bg-white px-3 py-2 text-black outline-none transition focus:border-black"
+              className="field mt-2"
             />
           </div>
 
@@ -179,7 +179,7 @@ export default function EditRecordForm({ record }: EditRecordFormProps) {
             <div>
               <label
                 htmlFor="startDate"
-                className="block text-sm font-medium"
+                className="field-label"
               >
                 Start date
               </label>
@@ -189,14 +189,14 @@ export default function EditRecordForm({ record }: EditRecordFormProps) {
                 type="date"
                 value={startDate}
                 onChange={(event) => setStartDate(event.target.value)}
-                className="mt-2 w-full rounded-md border bg-white px-3 py-2 text-black outline-none transition focus:border-black"
+                className="field mt-2"
               />
             </div>
 
             <div>
               <label
                 htmlFor="expiryDate"
-                className="block text-sm font-medium"
+                className="field-label"
               >
                 Expiry date
               </label>
@@ -206,13 +206,13 @@ export default function EditRecordForm({ record }: EditRecordFormProps) {
                 type="date"
                 value={expiryDate}
                 onChange={(event) => setExpiryDate(event.target.value)}
-                className="mt-2 w-full rounded-md border bg-white px-3 py-2 text-black outline-none transition focus:border-black"
+                className="field mt-2"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="amount" className="block text-sm font-medium">
+            <label htmlFor="amount" className="field-label">
               Amount
             </label>
 
@@ -224,19 +224,14 @@ export default function EditRecordForm({ record }: EditRecordFormProps) {
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
               placeholder="0.00"
-              className="mt-2 w-full rounded-md border bg-white px-3 py-2 text-black outline-none transition focus:border-black"
+              className="field mt-2"
             />
-
-            <p className="mt-1 text-xs text-gray-500">
-              Optional amount associated with the record, such as an annual fee
-              or purchase price.
-            </p>
           </div>
         </div>
 
         {error && (
-          <div className="mt-6 rounded-md border border-red-200 bg-red-50 px-4 py-3">
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="alert">
+            <p>{error}</p>
           </div>
         )}
 
@@ -244,7 +239,7 @@ export default function EditRecordForm({ record }: EditRecordFormProps) {
           <button
             type="button"
             onClick={() => router.push(`/records/${record.id}`)}
-            className="rounded-md border px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+            className="button-primary"
           >
             Cancel
           </button>
@@ -252,7 +247,7 @@ export default function EditRecordForm({ record }: EditRecordFormProps) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="button-primary"
           >
             {isSubmitting ? "Saving..." : "Save changes"}
           </button>

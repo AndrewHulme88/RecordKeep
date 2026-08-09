@@ -38,17 +38,17 @@ export default function EditRecordPage() {
 
   if (isLoading) {
     return (
-      <main className="mx-auto min-h-screen max-w-3xl px-6 py-10">
-        <p className="text-gray-600">Loading record...</p>
+      <main className="page-shell page-shell--narrow !pt-12">
+        <p className="text-[var(--muted)]">Loading record…</p>
       </main>
     );
   }
 
   if (error || !record) {
     return (
-      <main className="mx-auto min-h-screen max-w-3xl px-6 py-10">
-        <div className="rounded-lg border border-dashed p-10 text-center">
-          <h1 className="text-lg font-semibold">Unable to load record</h1>
+      <main className="page-shell page-shell--narrow !pt-12">
+        <div className="quiet-state">
+          <h1 className="section-title">Unable to load record</h1>
 
           <p className="mt-2 text-sm text-red-600">
             {error || "Record not found."}
@@ -56,7 +56,7 @@ export default function EditRecordPage() {
 
           <Link
             href="/"
-            className="mt-5 inline-block rounded-md border px-4 py-2 text-sm font-medium transition hover:bg-black hover:text-white"
+            className="button-secondary mt-5"
           >
             Return to dashboard
           </Link>
