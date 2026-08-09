@@ -146,7 +146,7 @@ function RecordsWorkspace() {
               onChange={(event) =>
                 setSelectedCategory(event.target.value as "" | RecordCategory)
               }
-              className="field min-w-44 !py-2 text-sm"
+              className="field category-filter min-w-44 !py-2 text-sm"
             >
               <option value="">All categories</option>
               {RECORD_CATEGORIES.map((categoryOption) => (

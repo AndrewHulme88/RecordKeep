@@ -205,6 +205,11 @@ select {
   color: #778380;
 }
 
+.field.category-filter {
+  border-bottom: 0;
+  box-shadow: none;
+}
+
 .field-label {
   display: block;
   color: var(--ink);
