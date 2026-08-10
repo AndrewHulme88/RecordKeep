@@ -94,23 +94,37 @@ function RecordsWorkspace() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    const controller = new AbortController();
+
     async function loadRecords() {
       setIsLoading(true);
       setError("");
 
       try {
         const data = await getRecords(
-          selectedCategory ? { category: selectedCategory } : undefined,
+          {
+            category: selectedCategory || undefined,
+            signal: controller.signal,
+          },
         );
         setRecords(data);
-      } catch {
+      } catch (loadError) {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        console.error("Failed to load records:", loadError);
         setError("Could not load your records. Please refresh the page and try again.");
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     }
 
     void loadRecords();
+
+    return () => controller.abort();
   }, [selectedCategory]);
 
   return (

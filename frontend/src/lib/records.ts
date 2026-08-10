@@ -29,6 +29,7 @@ function getApiUrl(): string {
 // remain consistent across the frontend.
 export async function getRecords(options?: {
   category?: RecordCategory;
+  signal?: AbortSignal;
 }): Promise<RecordItem[]> {
   const params = new URLSearchParams();
 
@@ -41,6 +42,7 @@ export async function getRecords(options?: {
 
   const response = await authenticatedFetch(url, {
     cache: "no-store",
+    signal: options?.signal,
   });
 
   if (response.status === 401) {
