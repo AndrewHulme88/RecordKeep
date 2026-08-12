@@ -14,4 +14,5 @@ public sealed class RecordDocument
     public DateTime CreatedAtUtc { get; set; }
     public RecordEntity Record { get; set; } = null!;
     public bool IsUploaded { get; set; }
+    public ICollection<DocumentExtraction> Extractions { get; set; } = [];
 }

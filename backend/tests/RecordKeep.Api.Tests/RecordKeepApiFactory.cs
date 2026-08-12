@@ -30,6 +30,11 @@ public sealed class RecordKeepApiFactory : WebApplicationFactory<Program>
             services.AddSingleton<IDocumentStorageService>(serviceProvider =>
                 serviceProvider.GetRequiredService<FakeDocumentStorageService>());
 
+            services.AddSingleton<FakeDocumentExtractionService>();
+
+            services.AddSingleton<IDocumentExtractionService>(serviceProvider =>
+                serviceProvider.GetRequiredService<FakeDocumentExtractionService>());
+
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = TestAuthHandler.AuthenticationScheme;

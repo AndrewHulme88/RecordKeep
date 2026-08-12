@@ -175,6 +175,7 @@ app.MapGet("/", () => Results.Ok("RecordKeep API is running."));
 app.MapGet("/health", () => Results.Ok(new
 {
     status = "ok",
+    build = "2026-08-10-category-v6",
 }));
 
 app.MapRecordEndpoints();

@@ -16,6 +16,8 @@ public sealed class ApplicationDbContext : DbContext
 
     public DbSet<RecordDocument> RecordDocuments => Set<RecordDocument>();
 
+    public DbSet<DocumentExtraction> DocumentExtractions => Set<DocumentExtraction>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
