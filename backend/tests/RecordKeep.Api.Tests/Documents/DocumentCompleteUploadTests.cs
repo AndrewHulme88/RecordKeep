@@ -1,10 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using RecordKeep.Api.Contracts.Documents;
 using RecordKeep.Api.Contracts.Records;
 using RecordKeep.Api.Tests.Authentication;
 using RecordKeep.Infrastructure.Persistence;
+using RecordKeep.Domain.Documents;
 using RecordEntity = RecordKeep.Domain.Records.Record;
 
 namespace RecordKeep.Api.Tests.Documents;
@@ -25,6 +27,8 @@ public sealed class DocumentCompleteUploadTests : IClassFixture<RecordKeepApiFac
 
         dbContext.Database.EnsureDeleted();
         dbContext.Database.EnsureCreated();
+
+        scope.ServiceProvider.GetRequiredService<FakeDocumentExtractionService>().Reset();
     }
 
     [Fact]
@@ -74,6 +78,46 @@ public sealed class DocumentCompleteUploadTests : IClassFixture<RecordKeepApiFac
 
         Assert.NotNull(document);
         Assert.True(document.IsUploaded);
+
+        var extraction = await dbContext.DocumentExtractions.SingleAsync(
+            item => item.DocumentId == uploadResponse.DocumentId);
+
+        Assert.Equal(DocumentExtractionStatus.NeedsReview, extraction.Status);
+        Assert.Equal("Fake", extraction.Provider);
+        Assert.Equal("{\"blocks\":[]}", extraction.RawResultJson);
+    }
+
+    [Fact]
+    public async Task CompleteUpload_WhenExtractionFails_KeepsUploadAndRecordsFailure()
+    {
+        var record = await CreateRecord("user-a", "Insurance");
+        var uploadResponse = await CreateUploadUrl("user-a", record.Id, "policy.pdf", "application/pdf");
+
+        using (var scope = _factory.Services.CreateScope())
+        {
+            scope.ServiceProvider.GetRequiredService<FakeDocumentExtractionService>().ExceptionToThrow =
+                new InvalidOperationException("Simulated extraction failure.");
+        }
+
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/records/{record.Id}/documents/{uploadResponse.DocumentId}/complete");
+        request.Headers.Add(TestAuthHandler.UserIdHeader, "user-a");
+
+        var response = await _client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        using var verificationScope = _factory.Services.CreateScope();
+        var dbContext = verificationScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var document = await dbContext.RecordDocuments.FindAsync(uploadResponse.DocumentId);
+        var extraction = await dbContext.DocumentExtractions.SingleAsync(
+            item => item.DocumentId == uploadResponse.DocumentId);
+
+        Assert.NotNull(document);
+        Assert.True(document.IsUploaded);
+        Assert.Equal(DocumentExtractionStatus.Failed, extraction.Status);
+        Assert.Equal(nameof(InvalidOperationException), extraction.ErrorCode);
     }
 
     private async Task<RecordEntity> CreateRecord(string userId, string title)

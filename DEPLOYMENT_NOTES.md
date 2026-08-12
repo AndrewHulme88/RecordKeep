@@ -182,9 +182,9 @@ This avoids a Linux runtime issue with the missing `libgssapi_krb5.so.2` library
 
 ---
 
-## ECS Task Role for S3
+## ECS Task Role for S3 and Textract
 
-The ECS task uses a dedicated IAM task role for S3 access:
+The ECS task uses a dedicated IAM task role for S3 and Textract access:
 
 ```text
 recordkeep-ecs-task-role
@@ -234,6 +234,14 @@ The role has S3 permissions for the document bucket:
       "Resource": [
         "arn:aws:s3:::recordkeep-documents-andrew-sydney"
       ]
+    },
+    {
+      "Sid": "AllowRecordKeepDocumentAnalysis",
+      "Effect": "Allow",
+      "Action": [
+        "textract:AnalyzeDocument"
+      ],
+      "Resource": "*"
     }
   ]
 }

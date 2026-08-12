@@ -231,7 +231,10 @@ public static class DocumentEndpoints
         Guid recordId,
         Guid documentId,
         ClaimsPrincipal user,
-        ApplicationDbContext dbContext)
+        ApplicationDbContext dbContext,
+        IDocumentExtractionService extractionService,
+        ILoggerFactory loggerFactory,
+        CancellationToken cancellationToken)
     {
         var userId = GetUserId(user);
 
@@ -248,9 +251,56 @@ public static class DocumentEndpoints
             return Results.NotFound();
         }
 
-        document.IsUploaded = true;
+        if (document.IsUploaded)
+        {
+            return Results.NoContent();
+        }
 
-        await dbContext.SaveChangesAsync();
+        var now = DateTime.UtcNow;
+        var extraction = new DocumentExtraction
+        {
+            Id = Guid.NewGuid(),
+            DocumentId = document.Id,
+            UserId = userId,
+            Status = DocumentExtractionStatus.Processing,
+            CreatedAtUtc = now,
+            StartedAtUtc = now
+        };
+
+        document.IsUploaded = true;
+        dbContext.DocumentExtractions.Add(extraction);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            var result = await extractionService.ExtractAsync(
+                new DocumentExtractionRequest(document.Id, document.ObjectKey, document.ContentType),
+                cancellationToken);
+
+            extraction.Provider = result.Provider;
+            extraction.ModelName = result.ModelName;
+            extraction.SchemaVersion = result.SchemaVersion;
+            extraction.ExtractedFieldsJson = result.ExtractedFieldsJson;
+            extraction.EvidenceJson = result.EvidenceJson;
+            extraction.RawResultJson = result.RawResultJson;
+            extraction.Status = DocumentExtractionStatus.NeedsReview;
+            extraction.CompletedAtUtc = DateTime.UtcNow;
+        }
+        catch (Exception exception)
+        {
+            extraction.Status = DocumentExtractionStatus.Failed;
+            extraction.ErrorCode = exception.GetType().Name;
+            extraction.CompletedAtUtc = DateTime.UtcNow;
+
+            loggerFactory.CreateLogger(nameof(DocumentEndpoints)).LogError(
+                exception,
+                "Document extraction failed for document {DocumentId} and user {UserId}",
+                document.Id,
+                userId);
+        }
+
+        await dbContext.SaveChangesAsync(CancellationToken.None);
 
         return Results.NoContent();
     }

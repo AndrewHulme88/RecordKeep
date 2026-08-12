@@ -4,6 +4,7 @@ using RecordKeep.Api.Endpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Amazon.S3;
+using Amazon.Textract;
 using RecordKeep.Application.Documents;
 using RecordKeep.Infrastructure.Documents;
 
@@ -117,8 +118,10 @@ if (!builder.Environment.IsEnvironment("Testing"))
     builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
 
     builder.Services.AddAWSService<IAmazonS3>();
+    builder.Services.AddAWSService<IAmazonTextract>();
 
     builder.Services.AddScoped<IDocumentStorageService, S3DocumentStorageService>();
+    builder.Services.AddScoped<IDocumentExtractionService, TextractDocumentExtractionService>();
 }
 
 builder.Services.AddProblemDetails();
