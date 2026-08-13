@@ -231,9 +231,9 @@ export default function RecordDocuments({
             )}
 
             {isLoading ? (
-                <p className="text-sm text-gray-600">Loading documents...</p>
+                <p className="text-sm text-[var(--muted)]">Loading documents...</p>
             ) : documents.length === 0 ? (
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-[var(--muted)]">
                     No documents have been attached yet.
                 </p>
             ) : (
@@ -392,7 +392,7 @@ function ExtractionReviewForm({
     }
 
     return (
-        <form onSubmit={submitReview} className="mt-6 max-w-3xl bg-[rgb(255_255_255_/_0.24)] px-5 py-5 sm:px-6">
+        <form onSubmit={submitReview} className="mt-6 max-w-3xl bg-[rgb(224_129_71_/_0.08)] px-5 py-5 sm:px-6">
             <p className="eyebrow">Detected details</p>
             <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
                 Select the details you want to use, and correct them before applying. Unselected record fields stay unchanged.

@@ -2,13 +2,13 @@
 @import url("https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Lora:wght@400;500;600;700&display=swap");
 
 :root {
-  --ink: #1c2928;
-  --muted: #52605e;
-  --paper: #c8cfcd;
-  --surface: #dbe0de;
-  --line: #aeb8b5;
-  --accent: #263e3b;
-  --accent-dark: #172b29;
+  --ink: #29231e;
+  --muted: #746a61;
+  --paper: #f7f1e7;
+  --surface: #eee4d6;
+  --line: #d9cfc1;
+  --accent: #d35d25;
+  --accent-dark: #ad4318;
   --danger: #8f3e38;
 }
 
@@ -30,7 +30,7 @@ html {
 body {
   margin: 0;
   background:
-    radial-gradient(circle at 82% 2%, rgb(255 255 255 / 42%), transparent 29rem),
+    radial-gradient(circle at 82% 2%, rgb(224 129 71 / 14%), transparent 29rem),
     var(--paper);
   color: var(--ink);
   font-family: "Hanken Grotesk", "Gill Sans", sans-serif;
@@ -38,7 +38,7 @@ body {
 }
 
 ::selection {
-  background: #edf0ef;
+  background: #ead5c0;
 }
 
 button,
@@ -202,7 +202,7 @@ select {
 }
 
 .field::placeholder {
-  color: #778380;
+  color: #9a8e82;
 }
 
 .field.category-filter {

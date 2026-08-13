@@ -5,7 +5,7 @@ export default function RecordNotFound() {
         <main className="page-shell page-shell--narrow quiet-state !mt-12">
             <h1 className="page-title">Record not found</h1>
 
-            <p className="mt-3 text-gray-600">
+            <p className="mt-3 text-[var(--muted)]">
                 This record may have been deleted or does not exist.
             </p>
 

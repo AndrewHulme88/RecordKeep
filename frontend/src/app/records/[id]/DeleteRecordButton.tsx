@@ -35,7 +35,7 @@ export default function DeleteRecordButton({
   if (isConfirming) {
     return (
       <div className="flex flex-col items-end gap-2">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-[var(--muted)]">
           Are you sure? This cannot be undone.
         </p>
 

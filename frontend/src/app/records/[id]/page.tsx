@@ -85,7 +85,7 @@ export default function RecordDetailsPage() {
           {record.provider ? (
             <p className="mt-3 text-[var(--muted)]">{record.provider}</p>
           ) : (
-            <p className="mt-2 text-gray-500">No provider added</p>
+            <p className="mt-2 text-[var(--muted)]">No provider added</p>
           )}
         </div>
 
@@ -170,7 +170,7 @@ function Detail({ label, value }: DetailProps) {
       <p className="text-xs font-bold tracking-[0.08em] text-[var(--muted)] uppercase">{label}</p>
 
       <p className="mt-2 break-words font-serif text-lg">
-        {value || <span className="text-gray-400">Not provided</span>}
+        {value || <span className="text-[var(--muted)] opacity-70">Not provided</span>}
       </p>
     </div>
   );
