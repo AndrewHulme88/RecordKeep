@@ -93,6 +93,7 @@ public sealed class DocumentListTests : IClassFixture<RecordKeepApiFactory>
             Assert.False(string.IsNullOrWhiteSpace(document.OriginalFileName));
             Assert.False(string.IsNullOrWhiteSpace(document.ContentType));
             Assert.True(document.SizeBytes > 0);
+            Assert.Equal("NeedsReview", document.ExtractionStatus);
         });
     }
 

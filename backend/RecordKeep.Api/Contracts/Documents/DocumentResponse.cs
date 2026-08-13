@@ -8,4 +8,5 @@ public sealed class DocumentResponse
     public string ContentType { get; init; } = string.Empty;
     public long SizeBytes { get; init; }
     public DateTime CreatedAtUtc { get; init; }
+    public string? ExtractionStatus { get; init; }
 }

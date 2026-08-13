@@ -1,16 +1,33 @@
 "use client";
 
-import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { createDocumentDownloadUrl, deleteDocument, DocumentItem, getDocuments, uploadDocument, } from "@/lib/documents";
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
+import {
+    applyDocumentExtraction,
+    createDocumentDownloadUrl,
+    deleteDocument,
+    DocumentExtraction,
+    DocumentItem,
+    getDocumentExtraction,
+    getDocuments,
+    uploadDocument,
+} from "@/lib/documents";
+import type { RecordItem } from "@/types/record";
 
-type RecordDocumentsProps = { recordId: string; };
+type RecordDocumentsProps = {
+    recordId: string;
+    onRecordUpdated?: (record: RecordItem) => void;
+};
 
-export default function RecordDocuments({ recordId, }: RecordDocumentsProps) {
+export default function RecordDocuments({ recordId, onRecordUpdated }: RecordDocumentsProps) {
     const [documents, setDocuments] = useState<DocumentItem[]>([]);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isUploading, setIsUploading] = useState(false);
     const [deletingDocumentId, setDeletingDocumentId] = useState<string | null>(null);
+    const [openExtractionId, setOpenExtractionId] = useState<string | null>(null);
+    const [extractions, setExtractions] = useState<Record<string, DocumentExtraction>>({});
+    const [loadingExtractionId, setLoadingExtractionId] = useState<string | null>(null);
+    const [applyingExtractionId, setApplyingExtractionId] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -117,6 +134,32 @@ export default function RecordDocuments({ recordId, }: RecordDocumentsProps) {
         }
     }
 
+    async function handleReview(documentId: string) {
+        if (openExtractionId === documentId) {
+            setOpenExtractionId(null);
+            return;
+        }
+
+        setOpenExtractionId(documentId);
+
+        if (extractions[documentId]) {
+            return;
+        }
+
+        try {
+            setLoadingExtractionId(documentId);
+            setErrorMessage(null);
+            const extraction = await getDocumentExtraction(recordId, documentId);
+            setExtractions((current) => ({ ...current, [documentId]: extraction }));
+        } catch (error) {
+            console.error("Failed to load extracted details:", error);
+            setOpenExtractionId(null);
+            setErrorMessage("Could not load the detected document details.");
+        } finally {
+            setLoadingExtractionId(null);
+        }
+    }
+
     return (
         <section className="border-t border-[var(--line)] pt-8">
             <div className="mb-4">
@@ -168,42 +211,254 @@ export default function RecordDocuments({ recordId, }: RecordDocumentsProps) {
             ) : (
                 <ul className="divide-y divide-[var(--line)]">
                     {documents.map((document) => (
-                        <li
-                            key={document.id}
-                            className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between"
-                        >
-                            <div>
-                                <p className="font-serif text-lg">{document.originalFileName}</p>
-                                <p className="mt-1 text-xs text-[var(--muted)]">
-                                    {formatFileSize(document.sizeBytes)} -{" "}
-                                    {formatDate(document.createdAtUtc)}
-                                </p>
+                        <li key={document.id} className="py-4">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p className="font-serif text-lg">{document.originalFileName}</p>
+                                    <p className="mt-1 text-xs text-[var(--muted)]">
+                                        {formatFileSize(document.sizeBytes)} -{" "}
+                                        {formatDate(document.createdAtUtc)}
+                                        {document.extractionStatus && (
+                                            <> · {formatExtractionStatus(document.extractionStatus)}</>
+                                        )}
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-wrap gap-3">
+                                    {document.extractionStatus === "NeedsReview" && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleReview(document.id)}
+                                            className="button-secondary"
+                                        >
+                                            {openExtractionId === document.id ? "Hide details" : "Review details"}
+                                        </button>
+                                    )}
+
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDownload(document.id)}
+                                        className="button-secondary"
+                                    >
+                                        Open
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDelete(document.id)}
+                                        disabled={deletingDocumentId === document.id}
+                                        className="button-danger"
+                                    >
+                                        {deletingDocumentId === document.id ? "Deleting..." : "Delete"}
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="flex gap-2">
-                                <button
-                                    type="button"
-                                    onClick={() => handleDownload(document.id)}
-                                    className="button-secondary"
-                                >
-                                    Open
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={() => handleDelete(document.id)}
-                                    disabled={deletingDocumentId === document.id}
-                                    className="button-danger"
-                                >
-                                    {deletingDocumentId === document.id ? "Deleting..." : "Delete"}
-                                </button>
-                            </div>
+                            {openExtractionId === document.id && (
+                                <ExtractionReview
+                                    extraction={extractions[document.id]}
+                                    isLoading={loadingExtractionId === document.id}
+                                    isApplying={applyingExtractionId === document.id}
+                                    onApply={async (input) => {
+                                        try {
+                                            setApplyingExtractionId(document.id);
+                                            setErrorMessage(null);
+                                            const updatedRecord = await applyDocumentExtraction(recordId, document.id, input);
+                                            const updatedDocuments = await getDocuments(recordId);
+                                            setDocuments(updatedDocuments);
+                                            setOpenExtractionId(null);
+                                            onRecordUpdated?.(updatedRecord);
+                                        } catch (error) {
+                                            console.error("Failed to apply detected details:", error);
+                                            setErrorMessage("Could not apply the selected details. Check the values and try again.");
+                                        } finally {
+                                            setApplyingExtractionId(null);
+                                        }
+                                    }}
+                                />
+                            )}
                         </li>
                     ))}
                 </ul>
             )}
         </section>
     );
+}
+
+const extractionLabels: Record<string, string> = {
+    title: "Document type",
+    provider: "Provider",
+    referenceNumber: "Reference number",
+    startDate: "Start date",
+    expiryDate: "Expiry date",
+    amount: "Amount",
+};
+
+function ExtractionReview({
+    extraction,
+    isLoading,
+    isApplying,
+    onApply,
+}: {
+    extraction?: DocumentExtraction;
+    isLoading: boolean;
+    isApplying: boolean;
+    onApply: (input: import("@/lib/documents").ApplyDocumentExtractionInput) => Promise<void>;
+}) {
+    if (isLoading || !extraction) {
+        return <p className="mt-5 text-sm text-[var(--muted)]">Reading detected details…</p>;
+    }
+
+    return <ExtractionReviewForm extraction={extraction} isApplying={isApplying} onApply={onApply} />;
+}
+
+const reviewFieldKeys = ["title", "provider", "referenceNumber", "startDate", "expiryDate", "amount"] as const;
+type ReviewFieldKey = (typeof reviewFieldKeys)[number];
+
+function ExtractionReviewForm({
+    extraction,
+    isApplying,
+    onApply,
+}: {
+    extraction: DocumentExtraction;
+    isApplying: boolean;
+    onApply: (input: import("@/lib/documents").ApplyDocumentExtractionInput) => Promise<void>;
+}) {
+    const detectedFields = extraction.extractedFields ?? {};
+    const availableFields = reviewFieldKeys.filter((key) => detectedFields[key]);
+    const [selected, setSelected] = useState<Record<ReviewFieldKey, boolean>>({
+        title: false,
+        provider: false,
+        referenceNumber: false,
+        startDate: false,
+        expiryDate: false,
+        amount: false,
+    });
+    const [values, setValues] = useState<Record<ReviewFieldKey, string>>({
+        title: detectedFields.title ?? "",
+        provider: detectedFields.provider ?? "",
+        referenceNumber: detectedFields.referenceNumber ?? "",
+        startDate: normaliseDetectedDate(detectedFields.startDate),
+        expiryDate: normaliseDetectedDate(detectedFields.expiryDate),
+        amount: detectedFields.amount?.replace(/[^0-9.-]/g, "") ?? "",
+    });
+
+    const hasSelection = availableFields.some((key) => selected[key]);
+
+    async function submitReview(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        await onApply({
+            applyTitle: selected.title,
+            title: values.title,
+            applyProvider: selected.provider,
+            provider: values.provider,
+            applyReferenceNumber: selected.referenceNumber,
+            referenceNumber: values.referenceNumber,
+            applyStartDate: selected.startDate,
+            startDate: selected.startDate ? values.startDate || undefined : undefined,
+            applyExpiryDate: selected.expiryDate,
+            expiryDate: selected.expiryDate ? values.expiryDate || undefined : undefined,
+            applyAmount: selected.amount,
+            amount: selected.amount && values.amount ? Number(values.amount) : undefined,
+        });
+    }
+
+    return (
+        <form onSubmit={submitReview} className="mt-6 max-w-3xl bg-[rgb(255_255_255_/_0.24)] px-5 py-5 sm:px-6">
+            <p className="eyebrow">Detected details</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                Select the details you want to use, and correct them before applying. Unselected record fields stay unchanged.
+            </p>
+
+            {availableFields.length === 0 ? (
+                <p className="mt-5 text-sm text-[var(--muted)]">No details were detected.</p>
+            ) : (
+                <div className="mt-5 grid gap-x-10 gap-y-5 sm:grid-cols-2">
+                    {availableFields.map((key) => {
+                        const confidence = extraction.evidence?.[key]?.confidence;
+
+                        return (
+                            <label key={key} className="block">
+                                <span className="flex items-center gap-2 text-xs font-bold tracking-[0.08em] text-[var(--muted)] uppercase">
+                                    <input
+                                        type="checkbox"
+                                        checked={selected[key]}
+                                        onChange={(event) => setSelected((current) => ({ ...current, [key]: event.target.checked }))}
+                                        className="size-4 accent-[var(--accent)]"
+                                    />
+                                    {extractionLabels[key]}
+                                </span>
+                                <input
+                                    type={key === "amount" ? "number" : key.endsWith("Date") ? "date" : "text"}
+                                    step={key === "amount" ? "0.01" : undefined}
+                                    min={key === "amount" ? "0" : undefined}
+                                    value={values[key]}
+                                    onChange={(event) => setValues((current) => ({ ...current, [key]: event.target.value }))}
+                                    className="field mt-2"
+                                    disabled={!selected[key]}
+                                />
+                                {typeof confidence === "number" && (
+                                    <p className="mt-1 text-xs text-[var(--muted)]">
+                                        {Math.round(confidence)}% confidence
+                                    </p>
+                                )}
+                            </label>
+                        );
+                    })}
+                </div>
+            )}
+
+            {availableFields.length > 0 && (
+                <button type="submit" disabled={!hasSelection || isApplying} className="button-primary mt-6">
+                    {isApplying ? "Applying…" : "Apply selected details"}
+                </button>
+            )}
+        </form>
+    );
+}
+
+function normaliseDetectedDate(value: string | null | undefined): string {
+    if (!value) {
+        return "";
+    }
+
+    const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoMatch) {
+        return value;
+    }
+
+    const australianMatch = value.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+    if (australianMatch) {
+        const [, day, month, year] = australianMatch;
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        return "";
+    }
+
+    return [
+        parsed.getFullYear(),
+        String(parsed.getMonth() + 1).padStart(2, "0"),
+        String(parsed.getDate()).padStart(2, "0"),
+    ].join("-");
+}
+
+function formatExtractionStatus(status: DocumentItem["extractionStatus"]): string {
+    switch (status) {
+        case "Pending":
+        case "Processing":
+            return "Reading document";
+        case "NeedsReview":
+            return "Details ready to review";
+        case "Completed":
+            return "Details reviewed";
+        case "Failed":
+            return "Could not read details";
+        default:
+            return "";
+    }
 }
 
 function formatFileSize(sizeBytes: number): string {

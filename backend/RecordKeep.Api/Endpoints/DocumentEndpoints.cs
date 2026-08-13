@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using System.Globalization;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using RecordKeep.Api.Contracts.Documents;
 using RecordKeep.Api.Validation;
@@ -19,6 +21,10 @@ public static class DocumentEndpoints
         group.MapPost("/{recordId:guid}/documents/upload-url", CreateUploadUrl);
 
         group.MapGet("/{recordId:guid}/documents", GetDocuments);
+
+        group.MapGet("/{recordId:guid}/documents/{documentId:guid}/extraction", GetLatestExtraction);
+
+        group.MapPost("/{recordId:guid}/documents/{documentId:guid}/extraction/apply", ApplyLatestExtraction);
 
         group.MapGet("/{recordId:guid}/documents/{documentId:guid}/download-url", CreateDownloadUrl);
 
@@ -123,20 +129,226 @@ public static class DocumentEndpoints
             return Results.NotFound();
         }
 
-        var documents = await dbContext.RecordDocuments.Where(document =>
+        var documents = await dbContext.RecordDocuments
+            .Include(document => document.Extractions)
+            .Where(document =>
             document.RecordId == recordId && document.UserId == userId && document.IsUploaded)
-                .OrderByDescending(document => document.CreatedAtUtc)
-                .Select(document => new DocumentResponse
-                {
-                    Id = document.Id,
-                    RecordId = document.RecordId,
-                    OriginalFileName = document.OriginalFileName,
-                    ContentType = document.ContentType,
-                    SizeBytes = document.SizeBytes,
-                    CreatedAtUtc = document.CreatedAtUtc
-                }).ToListAsync();
+            .OrderByDescending(document => document.CreatedAtUtc)
+            .ToListAsync();
+
+        var response = documents.Select(document =>
+        {
+            var latestExtraction = document.Extractions.MaxBy(extraction => extraction.CreatedAtUtc);
+
+            return new DocumentResponse
+            {
+                Id = document.Id,
+                RecordId = document.RecordId,
+                OriginalFileName = document.OriginalFileName,
+                ContentType = document.ContentType,
+                SizeBytes = document.SizeBytes,
+                CreatedAtUtc = document.CreatedAtUtc,
+                ExtractionStatus = latestExtraction?.Status.ToString()
+            };
+        });
         
-        return Results.Ok(documents);
+        return Results.Ok(response);
+    }
+
+    private static async Task<IResult> GetLatestExtraction(
+        Guid recordId,
+        Guid documentId,
+        ClaimsPrincipal user,
+        ApplicationDbContext dbContext)
+    {
+        var userId = GetUserId(user);
+
+        if (userId is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var extraction = await dbContext.DocumentExtractions
+            .Where(item =>
+                item.DocumentId == documentId &&
+                item.Document.RecordId == recordId &&
+                item.UserId == userId)
+            .OrderByDescending(item => item.CreatedAtUtc)
+            .FirstOrDefaultAsync();
+
+        if (extraction is null)
+        {
+            return Results.NotFound();
+        }
+
+        return Results.Ok(new DocumentExtractionResponse
+        {
+            Id = extraction.Id,
+            DocumentId = extraction.DocumentId,
+            Status = extraction.Status.ToString(),
+            Provider = extraction.Provider,
+            ModelName = extraction.ModelName,
+            ExtractedFields = ParseJson(extraction.ExtractedFieldsJson),
+            Evidence = ParseJson(extraction.EvidenceJson),
+            ErrorCode = extraction.ErrorCode,
+            CreatedAtUtc = extraction.CreatedAtUtc,
+            CompletedAtUtc = extraction.CompletedAtUtc
+        });
+    }
+
+    private static JsonElement? ParseJson(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(json);
+            return document.RootElement.Clone();
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    private static async Task<IResult> ApplyLatestExtraction(
+        Guid recordId,
+        Guid documentId,
+        ApplyDocumentExtractionRequest request,
+        ClaimsPrincipal user,
+        ApplicationDbContext dbContext)
+    {
+        var userId = GetUserId(user);
+
+        if (userId is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        if (!HasSelectedField(request))
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]>
+            {
+                ["fields"] = ["Select at least one detected field to apply."]
+            });
+        }
+
+        var extraction = await dbContext.DocumentExtractions
+            .Include(item => item.Document)
+            .ThenInclude(document => document.Record)
+            .Where(item =>
+                item.DocumentId == documentId &&
+                item.Document.RecordId == recordId &&
+                item.UserId == userId)
+            .OrderByDescending(item => item.CreatedAtUtc)
+            .FirstOrDefaultAsync();
+
+        if (extraction is null)
+        {
+            return Results.NotFound();
+        }
+
+        if (extraction.Status != DocumentExtractionStatus.NeedsReview)
+        {
+            return Results.Conflict(new { error = "This extraction is not awaiting review." });
+        }
+
+        var record = extraction.Document.Record;
+        var title = request.ApplyTitle ? request.Title?.Trim() ?? string.Empty : record.Title;
+        var provider = request.ApplyProvider ? NullIfWhiteSpace(request.Provider) : record.Provider;
+        var referenceNumber = request.ApplyReferenceNumber
+            ? NullIfWhiteSpace(request.ReferenceNumber)
+            : record.ReferenceNumber;
+        var dateErrors = new Dictionary<string, string[]>();
+        var startDate = request.ApplyStartDate
+            ? ParseDate(request.StartDate, "startDate", dateErrors)
+            : record.StartDate;
+        var expiryDate = request.ApplyExpiryDate
+            ? ParseDate(request.ExpiryDate, "expiryDate", dateErrors)
+            : record.ExpiryDate;
+        var amount = request.ApplyAmount ? request.Amount : record.Amount;
+
+        if (dateErrors.Count > 0)
+        {
+            return Results.ValidationProblem(dateErrors);
+        }
+
+        var validationErrors = RecordRequestValidator.ValidateFields(
+            title,
+            provider,
+            referenceNumber,
+            startDate,
+            expiryDate,
+            amount);
+
+        if (validationErrors.Count > 0)
+        {
+            return Results.ValidationProblem(validationErrors);
+        }
+
+        record.Title = title;
+        record.Provider = provider;
+        record.ReferenceNumber = referenceNumber;
+        record.StartDate = startDate;
+        record.ExpiryDate = expiryDate;
+        record.Amount = amount;
+        record.UpdatedAtUtc = DateTime.UtcNow;
+        extraction.Status = DocumentExtractionStatus.Completed;
+
+        await dbContext.SaveChangesAsync();
+
+        return Results.Ok(new
+        {
+            record.Id,
+            record.Title,
+            record.Category,
+            record.Provider,
+            record.Description,
+            record.ReferenceNumber,
+            record.StartDate,
+            record.ExpiryDate,
+            record.Amount,
+            record.CreatedAtUtc,
+            record.UpdatedAtUtc
+        });
+    }
+
+    private static bool HasSelectedField(ApplyDocumentExtractionRequest request) =>
+        request.ApplyTitle ||
+        request.ApplyProvider ||
+        request.ApplyReferenceNumber ||
+        request.ApplyStartDate ||
+        request.ApplyExpiryDate ||
+        request.ApplyAmount;
+
+    private static string? NullIfWhiteSpace(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static DateOnly? ParseDate(
+        string? value,
+        string fieldName,
+        Dictionary<string, string[]> errors)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        if (DateOnly.TryParseExact(
+            value,
+            "yyyy-MM-dd",
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out var date))
+        {
+            return date;
+        }
+
+        errors[fieldName] = ["Enter a valid date."];
+        return null;
     }
 
     private static async Task<IResult> CreateDownloadUrl(

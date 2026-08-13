@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using RecordKeep.Api.Contracts.Documents;
@@ -85,6 +86,175 @@ public sealed class DocumentCompleteUploadTests : IClassFixture<RecordKeepApiFac
         Assert.Equal(DocumentExtractionStatus.NeedsReview, extraction.Status);
         Assert.Equal("Fake", extraction.Provider);
         Assert.Equal("{\"blocks\":[]}", extraction.RawResultJson);
+
+        using var extractionRequest = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"/api/records/{record.Id}/documents/{uploadResponse.DocumentId}/extraction");
+        extractionRequest.Headers.Add(TestAuthHandler.UserIdHeader, "user-a");
+
+        var extractionResponse = await _client.SendAsync(extractionRequest);
+        var extractionBody = await extractionResponse.Content.ReadFromJsonAsync<DocumentExtractionResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, extractionResponse.StatusCode);
+        Assert.NotNull(extractionBody);
+        Assert.Equal("NeedsReview", extractionBody.Status);
+        Assert.Equal("Fake", extractionBody.Provider);
+        Assert.Equal(JsonValueKind.Object, extractionBody.ExtractedFields?.ValueKind);
+    }
+
+    [Fact]
+    public async Task GetExtraction_WhenDocumentBelongsToAnotherUser_ReturnsNotFound()
+    {
+        var record = await CreateRecord("user-a", "Insurance");
+        var uploadResponse = await CreateUploadUrl("user-a", record.Id, "policy.pdf", "application/pdf");
+
+        using (var completeRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/records/{record.Id}/documents/{uploadResponse.DocumentId}/complete"))
+        {
+            completeRequest.Headers.Add(TestAuthHandler.UserIdHeader, "user-a");
+            (await _client.SendAsync(completeRequest)).EnsureSuccessStatusCode();
+        }
+
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"/api/records/{record.Id}/documents/{uploadResponse.DocumentId}/extraction");
+        request.Headers.Add(TestAuthHandler.UserIdHeader, "user-b");
+
+        var response = await _client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ApplyExtraction_UpdatesSelectedFieldsAndMarksReviewComplete()
+    {
+        var record = await CreateRecord("user-a", "Existing title");
+        var uploadResponse = await CreateUploadUrl("user-a", record.Id, "policy.pdf", "application/pdf");
+
+        using (var completeRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/records/{record.Id}/documents/{uploadResponse.DocumentId}/complete"))
+        {
+            completeRequest.Headers.Add(TestAuthHandler.UserIdHeader, "user-a");
+            (await _client.SendAsync(completeRequest)).EnsureSuccessStatusCode();
+        }
+
+        using var applyRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/records/{record.Id}/documents/{uploadResponse.DocumentId}/extraction/apply");
+        applyRequest.Headers.Add(TestAuthHandler.UserIdHeader, "user-a");
+        applyRequest.Content = JsonContent.Create(new ApplyDocumentExtractionRequest
+        {
+            ApplyProvider = true,
+            Provider = "Detected insurer",
+            ApplyReferenceNumber = true,
+            ReferenceNumber = "POL-123",
+            ApplyAmount = true,
+            Amount = 725.50m
+        });
+
+        var response = await _client.SendAsync(applyRequest);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var updatedRecord = await dbContext.Records.FindAsync(record.Id);
+        var extraction = await dbContext.DocumentExtractions.SingleAsync(
+            item => item.DocumentId == uploadResponse.DocumentId);
+
+        Assert.NotNull(updatedRecord);
+        Assert.Equal("Existing title", updatedRecord.Title);
+        Assert.Equal("Detected insurer", updatedRecord.Provider);
+        Assert.Equal("POL-123", updatedRecord.ReferenceNumber);
+        Assert.Equal(725.50m, updatedRecord.Amount);
+        Assert.Equal(DocumentExtractionStatus.Completed, extraction.Status);
+    }
+
+    [Fact]
+    public async Task ApplyExtraction_WithoutSelectedFields_ReturnsValidationError()
+    {
+        var record = await CreateRecord("user-a", "Insurance");
+        var uploadResponse = await CreateUploadUrl("user-a", record.Id, "policy.pdf", "application/pdf");
+
+        using (var completeRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/records/{record.Id}/documents/{uploadResponse.DocumentId}/complete"))
+        {
+            completeRequest.Headers.Add(TestAuthHandler.UserIdHeader, "user-a");
+            (await _client.SendAsync(completeRequest)).EnsureSuccessStatusCode();
+        }
+
+        using var applyRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/records/{record.Id}/documents/{uploadResponse.DocumentId}/extraction/apply");
+        applyRequest.Headers.Add(TestAuthHandler.UserIdHeader, "user-a");
+        applyRequest.Content = JsonContent.Create(new ApplyDocumentExtractionRequest());
+
+        var response = await _client.SendAsync(applyRequest);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ApplyExtraction_WithUnselectedMalformedDate_IgnoresTheDate()
+    {
+        var record = await CreateRecord("user-a", "Insurance");
+        var uploadResponse = await CreateUploadUrl("user-a", record.Id, "policy.pdf", "application/pdf");
+
+        using (var completeRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/records/{record.Id}/documents/{uploadResponse.DocumentId}/complete"))
+        {
+            completeRequest.Headers.Add(TestAuthHandler.UserIdHeader, "user-a");
+            (await _client.SendAsync(completeRequest)).EnsureSuccessStatusCode();
+        }
+
+        using var applyRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/records/{record.Id}/documents/{uploadResponse.DocumentId}/extraction/apply");
+        applyRequest.Headers.Add(TestAuthHandler.UserIdHeader, "user-a");
+        applyRequest.Content = JsonContent.Create(new ApplyDocumentExtractionRequest
+        {
+            ApplyProvider = true,
+            Provider = "Detected insurer",
+            ApplyExpiryDate = false,
+            ExpiryDate = "31 September sometime"
+        });
+
+        var response = await _client.SendAsync(applyRequest);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ApplyExtraction_WithSelectedMalformedDate_ReturnsValidationError()
+    {
+        var record = await CreateRecord("user-a", "Insurance");
+        var uploadResponse = await CreateUploadUrl("user-a", record.Id, "policy.pdf", "application/pdf");
+
+        using (var completeRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/records/{record.Id}/documents/{uploadResponse.DocumentId}/complete"))
+        {
+            completeRequest.Headers.Add(TestAuthHandler.UserIdHeader, "user-a");
+            (await _client.SendAsync(completeRequest)).EnsureSuccessStatusCode();
+        }
+
+        using var applyRequest = new HttpRequestMessage(
+            HttpMethod.Post,
+            $"/api/records/{record.Id}/documents/{uploadResponse.DocumentId}/extraction/apply");
+        applyRequest.Headers.Add(TestAuthHandler.UserIdHeader, "user-a");
+        applyRequest.Content = JsonContent.Create(new ApplyDocumentExtractionRequest
+        {
+            ApplyExpiryDate = true,
+            ExpiryDate = "31 September sometime"
+        });
+
+        var response = await _client.SendAsync(applyRequest);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]

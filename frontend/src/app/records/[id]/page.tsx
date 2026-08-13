@@ -147,7 +147,10 @@ export default function RecordDetailsPage() {
       </section>
 
       <div className="mt-8">
-        <RecordDocuments recordId={record.id} />
+        <RecordDocuments
+          recordId={record.id}
+          onRecordUpdated={(updatedRecord) => setRecord(updatedRecord)}
+        />
       </div>
     </main>
   );
