@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import DeleteRecordButton from "./DeleteRecordButton";
 import { getRecordById } from "@/lib/records";
 import type { RecordItem } from "@/types/record";
@@ -10,7 +10,9 @@ import RecordDocuments from "@/components/RecordDocuments";
 
 export default function RecordDetailsPage() {
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
   const id = params.id;
+  const reviewDocumentId = searchParams.get("reviewDocument");
 
   const [record, setRecord] = useState<RecordItem | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -149,6 +151,7 @@ export default function RecordDetailsPage() {
       <div className="mt-8">
         <RecordDocuments
           recordId={record.id}
+          initialReviewDocumentId={reviewDocumentId}
           onRecordUpdated={(updatedRecord) => setRecord(updatedRecord)}
         />
       </div>

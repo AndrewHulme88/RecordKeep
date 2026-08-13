@@ -95,7 +95,7 @@ export async function getDocuments(recordId: string): Promise<DocumentItem[]> {
 export async function uploadDocument(
   recordId: string,
   file: File,
-): Promise<void> {
+): Promise<string> {
   const uploadUrlResponse = await authenticatedFetch(
     `${getApiUrl()}/api/records/${recordId}/documents/upload-url`,
     {
@@ -147,6 +147,8 @@ export async function uploadDocument(
   }
 
   await completeDocumentUpload(recordId, uploadDetails.documentId);
+
+  return uploadDetails.documentId;
 }
 
 export async function createDocumentDownloadUrl(

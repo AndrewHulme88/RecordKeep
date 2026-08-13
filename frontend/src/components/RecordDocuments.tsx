@@ -15,10 +15,15 @@ import type { RecordItem } from "@/types/record";
 
 type RecordDocumentsProps = {
     recordId: string;
+    initialReviewDocumentId?: string | null;
     onRecordUpdated?: (record: RecordItem) => void;
 };
 
-export default function RecordDocuments({ recordId, onRecordUpdated }: RecordDocumentsProps) {
+export default function RecordDocuments({
+    recordId,
+    initialReviewDocumentId,
+    onRecordUpdated,
+}: RecordDocumentsProps) {
     const [documents, setDocuments] = useState<DocumentItem[]>([]);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +47,29 @@ export default function RecordDocuments({ recordId, onRecordUpdated }: RecordDoc
                 if (isMounted) {
                     setDocuments(result);
                     setErrorMessage(null);
+
+                    const reviewDocument = result.find(
+                        (document) =>
+                            document.id === initialReviewDocumentId &&
+                            document.extractionStatus === "NeedsReview",
+                    );
+
+                    if (reviewDocument) {
+                        setOpenExtractionId(reviewDocument.id);
+                        setLoadingExtractionId(reviewDocument.id);
+
+                        try {
+                            const extraction = await getDocumentExtraction(recordId, reviewDocument.id);
+
+                            if (isMounted) {
+                                setExtractions({ [reviewDocument.id]: extraction });
+                            }
+                        } finally {
+                            if (isMounted) {
+                                setLoadingExtractionId(null);
+                            }
+                        }
+                    }
                 }
             } catch (error) {
                 console.error("Failed to load documents:", error);
@@ -61,7 +89,7 @@ export default function RecordDocuments({ recordId, onRecordUpdated }: RecordDoc
         return () => {
             isMounted = false;
         };
-    }, [recordId]);
+    }, [initialReviewDocumentId, recordId]);
 
     async function refreshDocuments() {
         const result = await getDocuments(recordId);

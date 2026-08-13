@@ -1,13 +1,23 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createRecord } from "@/lib/records";
-import { DEFAULT_RECORD_CATEGORY, RECORD_CATEGORIES, RecordCategory } from "@/lib/record-categories";
+import { uploadDocument } from "@/lib/documents";
+import { createRecord, deleteRecord } from "@/lib/records";
+import {
+  DEFAULT_RECORD_CATEGORY,
+  RECORD_CATEGORIES,
+  RecordCategory,
+} from "@/lib/record-categories";
+
+type EntryMethod = "document" | "manual";
 
 export default function NewRecordPage() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const [entryMethod, setEntryMethod] = useState<EntryMethod>("document");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<RecordCategory>(DEFAULT_RECORD_CATEGORY);
   const [provider, setProvider] = useState("");
@@ -16,11 +26,58 @@ export default function NewRecordPage() {
   const [startDate, setStartDate] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [amount, setAmount] = useState("");
-
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function chooseEntryMethod(method: EntryMethod) {
+    setEntryMethod(method);
+    setError("");
+  }
+
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    setSelectedFile(event.target.files?.[0] ?? null);
+    setError("");
+  }
+
+  async function handleDocumentUpload(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!selectedFile) {
+      setError("Choose a PDF, PNG or JPEG under 10 MB.");
+      return;
+    }
+
+    setError("");
+    setIsSubmitting(true);
+    let draftRecordId: string | null = null;
+
+    try {
+      const record = await createRecord({
+        title: titleFromFileName(selectedFile.name),
+        category: DEFAULT_RECORD_CATEGORY,
+      });
+      draftRecordId = record.id;
+
+      const documentId = await uploadDocument(record.id, selectedFile);
+      router.push(`/records/${record.id}?reviewDocument=${documentId}`);
+      router.refresh();
+    } catch (uploadError) {
+      console.error("Failed to create a record from the document:", uploadError);
+
+      if (draftRecordId) {
+        try {
+          await deleteRecord(draftRecordId);
+        } catch (cleanupError) {
+          console.error("Failed to remove incomplete draft record:", cleanupError);
+        }
+      }
+
+      setError("Could not upload the document. Check the file and try again.");
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleManualSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!title.trim()) {
@@ -47,197 +104,157 @@ export default function NewRecordPage() {
       router.refresh();
     } catch {
       setError("Something went wrong while creating the record.");
-    } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
     <main className="page-shell page-shell--narrow !pt-12">
-      <button
-        type="button"
-        onClick={() => router.push("/")}
-        className="text-action back-link"
-      >
+      <button type="button" onClick={() => router.push("/")} className="text-action back-link">
         Back to records
       </button>
 
       <div className="mt-6">
         <h1 className="page-title mt-4 !font-bold">Add a new record</h1>
-
         <p className="lede mt-4">
-          Save key details for a policy, warranty, licence, subscription or
-          other important item. You can attach supporting documents after the
-          record has been created.
+          Start with a document and review the details we find, or enter everything yourself.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="form-sheet">
-        <div className="space-y-6">
-          <div>
-            <label htmlFor="title" className="field-label">
-              Title <span className="text-red-600">*</span>
-            </label>
+      <div className="mt-10 flex gap-6 border-b border-[var(--line)]" aria-label="Choose how to add a record">
+        <MethodButton
+          active={entryMethod === "document"}
+          onClick={() => chooseEntryMethod("document")}
+        >
+          Upload a document
+        </MethodButton>
+        <MethodButton
+          active={entryMethod === "manual"}
+          onClick={() => chooseEntryMethod("manual")}
+        >
+          Enter details manually
+        </MethodButton>
+      </div>
 
+      {entryMethod === "document" ? (
+        <form onSubmit={handleDocumentUpload} className="pt-10">
+          <h2 className="section-title">Let the document do the first pass</h2>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--muted)]">
+            Upload one document. You’ll review and correct every detected detail before anything is saved to the record.
+          </p>
+
+          <div className="mt-8">
+            <label htmlFor="record-document" className="field-label">Document</label>
             <input
-              id="title"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="Car insurance, laptop warranty, driver licence..."
-              className="field mt-2"
-              required
+              ref={fileInputRef}
+              id="record-document"
+              type="file"
+              accept="application/pdf,image/jpeg,image/png"
+              onChange={handleFileChange}
+              className="mt-3 block w-full text-sm text-[var(--muted)] file:mr-4 file:rounded-full file:border-0 file:bg-[var(--surface)] file:px-4 file:py-2 file:text-xs file:font-bold file:text-[var(--accent)]"
             />
-
-            <p className="field-help">
-              A short name that makes this record easy to recognise.
-            </p>
+            <p className="field-help">PDF, PNG or JPEG. Maximum size 10 MB.</p>
           </div>
 
-          <div>
-            <label htmlFor="category" className="field-label">
-              Category
-            </label>
+          {selectedFile && (
+            <p className="mt-5 font-serif text-lg">{selectedFile.name}</p>
+          )}
 
-            <select
-              id="category"
-              value={category}
-              onChange={(event) => setCategory(event.target.value as RecordCategory)}
-              className="field mt-2"
-            >
-              {RECORD_CATEGORIES.map((categoryOption) => (
-                <option key={categoryOption} value={categoryOption}>
-                  {categoryOption}
-                </option>
-              ))}
-            </select>
+          <FormMessage error={error} />
 
-            <p className="field-help">
-              Choose the type of record you are saving.
-            </p>
+          <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button type="button" onClick={() => router.push("/")} className="button-primary">
+              Cancel
+            </button>
+            <button type="submit" disabled={!selectedFile || isSubmitting} className="button-primary">
+              {isSubmitting ? "Reading document…" : "Upload and continue"}
+            </button>
           </div>
+        </form>
+      ) : (
+        <form onSubmit={handleManualSubmit} className="form-sheet">
+          <div className="space-y-6">
+            <Field label="Title" required help="A short name that makes this record easy to recognise.">
+              <input id="title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Car insurance, laptop warranty, driver licence..." className="field mt-2" required />
+            </Field>
 
-          <div>
-            <label htmlFor="provider" className="field-label">
-              Provider
-            </label>
+            <Field label="Category" help="Choose the type of record you are saving.">
+              <select id="category" value={category} onChange={(event) => setCategory(event.target.value as RecordCategory)} className="field mt-2">
+                {RECORD_CATEGORIES.map((option) => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </Field>
 
-            <input
-              id="provider"
-              value={provider}
-              onChange={(event) => setProvider(event.target.value)}
-              placeholder="AAMI, Apple, VicRoads..."
-              className="field mt-2"
-            />
-          </div>
+            <Field label="Provider">
+              <input id="provider" value={provider} onChange={(event) => setProvider(event.target.value)} placeholder="AAMI, Apple, VicRoads..." className="field mt-2" />
+            </Field>
 
-          <div>
-            <label htmlFor="description" className="field-label">
-              Description
-            </label>
+            <Field label="Description">
+              <textarea id="description" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Add any notes that would help you understand this record later." className="field mt-2 min-h-28 resize-y" />
+            </Field>
 
-            <textarea
-              id="description"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder="Add any notes that would help you understand this record later."
-              className="field mt-2 min-h-28 resize-y"
-            />
-          </div>
+            <Field label="Reference number">
+              <input id="reference-number" value={referenceNumber} onChange={(event) => setReferenceNumber(event.target.value)} placeholder="Policy number, account number, licence number..." className="field mt-2" />
+            </Field>
 
-          <div>
-            <label
-              htmlFor="referenceNumber"
-              className="field-label"
-            >
-              Reference number
-            </label>
-
-            <input
-              id="referenceNumber"
-              value={referenceNumber}
-              onChange={(event) => setReferenceNumber(event.target.value)}
-              placeholder="Policy number, account number, licence number..."
-              className="field mt-2"
-            />
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div>
-              <label
-                htmlFor="startDate"
-                className="field-label"
-              >
-                Start date
-              </label>
-
-              <input
-                id="startDate"
-                type="date"
-                value={startDate}
-                onChange={(event) => setStartDate(event.target.value)}
-                className="field mt-2"
-              />
+            <div className="grid gap-6 sm:grid-cols-2">
+              <Field label="Start date">
+                <input id="start-date" type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} className="field mt-2" />
+              </Field>
+              <Field label="Expiry date">
+                <input id="expiry-date" type="date" value={expiryDate} onChange={(event) => setExpiryDate(event.target.value)} className="field mt-2" />
+              </Field>
             </div>
 
-            <div>
-              <label
-                htmlFor="expiryDate"
-                className="field-label"
-              >
-                Expiry date
-              </label>
-
-              <input
-                id="expiryDate"
-                type="date"
-                value={expiryDate}
-                onChange={(event) => setExpiryDate(event.target.value)}
-                className="field mt-2"
-              />
-            </div>
+            <Field label="Amount">
+              <input id="amount" type="number" step="0.01" min="0" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0.00" className="field mt-2" />
+            </Field>
           </div>
 
-          <div>
-            <label htmlFor="amount" className="field-label">
-              Amount
-            </label>
+          <FormMessage error={error} />
 
-            <input
-              id="amount"
-              type="number"
-              step="0.01"
-              min="0"
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
-              placeholder="0.00"
-              className="field mt-2"
-            />
+          <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button type="button" onClick={() => router.push("/")} className="button-primary">Cancel</button>
+            <button type="submit" disabled={isSubmitting} className="button-primary">
+              {isSubmitting ? "Saving..." : "Save record"}
+            </button>
           </div>
-        </div>
-        {error && (
-          <div className="alert">
-            <p>{error}</p>
-          </div>
-        )}
-
-        <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={() => router.push("/")}
-            className="button-primary"
-          >
-            Cancel
-          </button>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="button-primary"
-          >
-            {isSubmitting ? "Saving..." : "Save record"}
-          </button>
-        </div>
-      </form>
+        </form>
+      )}
     </main>
   );
+}
+
+function MethodButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`pb-3 text-sm font-bold transition-colors ${active ? "border-b-2 border-[var(--accent)] text-[var(--ink)]" : "text-[var(--muted)] hover:text-[var(--ink)]"}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function Field({ label, required, help, children }: { label: string; required?: boolean; help?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="field-label">
+        {label} {required && <span className="text-red-600">*</span>}
+      </label>
+      {children}
+      {help && <p className="field-help">{help}</p>}
+    </div>
+  );
+}
+
+function FormMessage({ error }: { error: string }) {
+  return error ? <div className="alert"><p>{error}</p></div> : null;
+}
+
+function titleFromFileName(fileName: string): string {
+  const withoutExtension = fileName.replace(/\.[^.]+$/, "");
+  const readable = withoutExtension.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
+  return readable || "New record";
 }
